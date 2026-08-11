@@ -1,0 +1,34 @@
+id: G08_audit_modification_flow
+namespace: poc.kestra.gouvernance
+description: "G08 - Audit modification flow : enregistrer une trace d'audit exploitable."
+labels: {poc.domain: gouvernance, poc.usecase: G08}
+inputs:
+  - id: mock_base_url
+    type: STRING
+    defaults: http://mock-api:8080
+  - id: actor
+    type: STRING
+    defaults: testeur.poc
+  - id: action
+    type: SELECT
+    defaults: update_flow
+    values: [create_flow, update_flow, delete_flow, execute_flow]
+  - id: target_flow
+    type: STRING
+    defaults: poc.kestra.gouvernance.G08_audit_modification_flow
+tasks:
+  - id: publier_audit
+    type: io.kestra.plugin.core.http.Request
+    uri: "{{ inputs.mock_base_url }}/governance/audit"
+    method: POST
+    headers:
+      Content-Type: application/json
+    body: |
+      {"actor":"{{ inputs.actor }}","action":"{{ inputs.action }}","target":"{{ inputs.target_flow }}","execution":"{{ execution.id }}","source":"kestra-poc"}
+  - id: journaliser
+    type: io.kestra.plugin.core.log.Log
+    message: "Trace audit publiée pour {{ inputs.action }} sur {{ inputs.target_flow }}"
+outputs:
+  - id: audit_event
+    type: STRING
+    value: "{{ outputs.publier_audit.body }}"
