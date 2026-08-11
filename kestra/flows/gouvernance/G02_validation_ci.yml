@@ -1,0 +1,39 @@
+id: G02_validation_ci
+namespace: poc.kestra.gouvernance
+description: "G02 - Validation CI : bloquer la promotion si le quality gate échoue."
+labels: {poc.domain: gouvernance, poc.usecase: G02}
+inputs:
+  - id: mock_base_url
+    type: STRING
+    defaults: http://mock-api:8080
+  - id: pipeline_id
+    type: STRING
+    defaults: PIPE-001
+  - id: quality_gate
+    type: SELECT
+    defaults: pass
+    values: [pass, fail]
+tasks:
+  - id: publier_resultat_ci
+    type: io.kestra.plugin.core.http.Request
+    uri: "{{ inputs.mock_base_url }}/governance/pipelines"
+    method: POST
+    headers:
+      Content-Type: application/json
+    body: |
+      {"pipeline_id":"{{ inputs.pipeline_id }}","quality_gate":"{{ inputs.quality_gate }}","flow":"{{ flow.id }}","execution":"{{ execution.id }}"}
+  - id: verifier_gate
+    type: io.kestra.plugin.core.flow.If
+    condition: "{{ inputs.quality_gate == 'fail' }}"
+    then:
+      - id: bloquer_deploiement
+        type: io.kestra.plugin.core.execution.Fail
+        errorMessage: "Quality gate CI en échec : déploiement bloqué."
+    else:
+      - id: autoriser_deploiement
+        type: io.kestra.plugin.core.log.Log
+        message: "Quality gate CI OK : déploiement autorisé."
+outputs:
+  - id: pipeline_report
+    type: STRING
+    value: "{{ outputs.publier_resultat_ci.body }}"
