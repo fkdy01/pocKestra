@@ -1,0 +1,28 @@
+id: G04_prod_readonly
+namespace: poc.kestra.gouvernance
+description: "G04 - Production read-only : refuser les modifications directes depuis l'UI en prod."
+labels: {poc.domain: gouvernance, poc.usecase: G04}
+inputs:
+  - id: environnement
+    type: SELECT
+    defaults: prod
+    values: [dev, recette, prod]
+  - id: modification_directe_ui
+    type: BOOLEAN
+    defaults: true
+tasks:
+  - id: verifier_readonly_prod
+    type: io.kestra.plugin.core.flow.If
+    condition: "{{ inputs.environnement == 'prod' and inputs.modification_directe_ui }}"
+    then:
+      - id: refuser_modification_prod
+        type: io.kestra.plugin.core.execution.Fail
+        errorMessage: "Production read-only : modification directe UI interdite. Passer par Git/CI-CD."
+    else:
+      - id: modification_autorisee
+        type: io.kestra.plugin.core.log.Log
+        message: "Modification autorisée hors production ou via pipeline."
+errors:
+  - id: journaliser_refus
+    type: io.kestra.plugin.core.log.Log
+    message: "Refus attendu pour démontrer la production read-only."
