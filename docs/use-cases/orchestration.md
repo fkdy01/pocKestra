@@ -52,3 +52,4 @@ docs/test-guides/orchestration.md
 
 - Les flows utilisent parfois le `Process` task runner pour les scripts Shell de test : à borner par worker group, compte OS dédié et allowlist de plugins.
 - Certains cas d'erreur sont volontairement en échec pour tester reprise, alerting et diagnostic.
+
