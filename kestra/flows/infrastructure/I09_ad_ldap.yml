@@ -1,0 +1,30 @@
+id: I09_ad_ldap
+namespace: poc.kestra.infrastructure
+description: "I09 - Appel AD/LDAP simulé : ajout d'un utilisateur dans un groupe."
+labels: {poc.domain: infrastructure, poc.usecase: I09}
+inputs:
+  - id: mock_base_url
+    type: STRING
+    defaults: http://mock-api:8080
+  - id: group
+    type: STRING
+    defaults: GG-POC-Kestra-Test
+  - id: user
+    type: STRING
+    defaults: user.demo
+tasks:
+  - id: ajouter_membre
+    type: io.kestra.plugin.core.http.Request
+    uri: "{{ inputs.mock_base_url }}/ad/groups/{{ inputs.group }}/members"
+    method: POST
+    headers:
+      Content-Type: application/json
+    body: |
+      {"user":"{{ inputs.user }}","reason":"POC Kestra I09"}
+  - id: journaliser_ajout
+    type: io.kestra.plugin.core.log.Log
+    message: "Réponse AD mock={{ outputs.ajouter_membre.body }}"
+outputs:
+  - id: ad_response
+    type: STRING
+    value: "{{ outputs.ajouter_membre.body }}"

@@ -1,0 +1,27 @@
+id: I01_api_rest_interne
+namespace: poc.kestra.infrastructure
+description: "I01 - Appel API REST interne : healthcheck et récupération de serveurs depuis une API mock."
+labels: {poc.domain: infrastructure, poc.usecase: I01}
+inputs:
+  - id: mock_base_url
+    type: STRING
+    defaults: http://mock-api:8080
+  - id: count
+    type: INT
+    defaults: 3
+tasks:
+  - id: verifier_api
+    type: io.kestra.plugin.core.http.Request
+    uri: "{{ inputs.mock_base_url }}/health"
+    method: GET
+  - id: lister_serveurs
+    type: io.kestra.plugin.core.http.Request
+    uri: "{{ inputs.mock_base_url }}/servers?count={{ inputs.count }}"
+    method: GET
+  - id: compte_rendu
+    type: io.kestra.plugin.core.log.Log
+    message: "Health={{ outputs.verifier_api.body }}, serveurs={{ outputs.lister_serveurs.body }}"
+outputs:
+  - id: servers_response
+    type: STRING
+    value: "{{ outputs.lister_serveurs.body }}"

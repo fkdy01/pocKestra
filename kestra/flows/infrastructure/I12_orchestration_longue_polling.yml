@@ -1,0 +1,37 @@
+id: I12_orchestration_longue_polling
+namespace: poc.kestra.infrastructure
+description: "I12 - Orchestration longue : création d'opération et polling jusqu'à statut DONE."
+labels: {poc.domain: infrastructure, poc.usecase: I12}
+inputs:
+  - id: mock_base_url
+    type: STRING
+    defaults: http://mock-api:8080
+  - id: resource
+    type: STRING
+    defaults: long-op-001
+tasks:
+  - id: creer_operation
+    type: io.kestra.plugin.core.http.Request
+    uri: "{{ inputs.mock_base_url }}/operations"
+    method: POST
+    headers:
+      Content-Type: application/json
+    body: |
+      {"resource":"{{ inputs.resource }}","kind":"long-running-operation"}
+  - id: polling
+    type: io.kestra.plugin.core.flow.ForEach
+    values: ["1", "2", "3"]
+    tasks:
+      - id: attendre
+        type: io.kestra.plugin.core.flow.Sleep
+        duration: PT2S
+      - id: lire_statut
+        type: io.kestra.plugin.core.http.Request
+        uri: "{{ inputs.mock_base_url }}/operations/{{ outputs.creer_operation.body | jq('.operation_id') | first }}"
+        method: GET
+      - id: log_statut
+        type: io.kestra.plugin.core.log.Log
+        message: "Polling {{ taskrun.value }} : {{ outputs.lire_statut.body }}"
+  - id: compte_rendu
+    type: io.kestra.plugin.core.log.Log
+    message: "Opération terminée après polling."

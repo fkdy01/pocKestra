@@ -1,0 +1,28 @@
+id: I10_traitement_fichier
+namespace: poc.kestra.infrastructure
+description: "I10 - Traitement fichier : génération, stockage interne et relecture d'un fichier de preuve."
+labels: {poc.domain: infrastructure, poc.usecase: I10}
+inputs:
+  - id: server
+    type: STRING
+    defaults: srv-001
+tasks:
+  - id: generer_fichier
+    type: io.kestra.plugin.scripts.shell.Commands
+    taskRunner: {type: io.kestra.plugin.core.runner.Process}
+    outputFiles:
+      - inventory.txt
+    commands:
+      - echo "server={{ inputs.server }}" > inventory.txt
+      - echo "execution={{ execution.id }}" >> inventory.txt
+      - echo "status=READY" >> inventory.txt
+  - id: mesurer_fichier
+    type: io.kestra.plugin.core.storage.Size
+    uri: "{{ outputs.generer_fichier.outputFiles['inventory.txt'] }}"
+  - id: compte_rendu
+    type: io.kestra.plugin.core.log.Log
+    message: "Fichier={{ outputs.generer_fichier.outputFiles['inventory.txt'] }}, taille={{ outputs.mesurer_fichier.size }}"
+outputs:
+  - id: file_uri
+    type: STRING
+    value: "{{ outputs.generer_fichier.outputFiles['inventory.txt'] }}"

@@ -1,0 +1,38 @@
+id: I03_ssh_linux
+namespace: poc.kestra.infrastructure
+description: "I03 - Exécution d'une commande SSH Linux, avec mode mock par défaut pour un test sans serveur cible."
+labels: {poc.domain: infrastructure, poc.usecase: I03}
+inputs:
+  - id: execution_mode
+    type: SELECT
+    defaults: mock
+    values: [mock, real]
+  - id: host
+    type: STRING
+    defaults: srv-linux-001
+  - id: username
+    type: STRING
+    defaults: ansible
+tasks:
+  - id: choisir_mode
+    type: io.kestra.plugin.core.flow.If
+    condition: "{{ inputs.execution_mode == 'real' }}"
+    then:
+      - id: ssh_reel
+        type: io.kestra.plugin.fs.ssh.Command
+        host: "{{ inputs.host }}"
+        port: "22"
+        authMethod: PUBLIC_KEY
+        username: "{{ inputs.username }}"
+        privateKey: "{{ secret('POC_SSH_PRIVATE_KEY') }}"
+        commands:
+          - hostname
+          - uname -a
+    else:
+      - id: ssh_mock
+        type: io.kestra.plugin.scripts.shell.Commands
+        taskRunner: {type: io.kestra.plugin.core.runner.Process}
+        commands:
+          - echo "MOCK SSH host={{ inputs.host }} user={{ inputs.username }}"
+          - echo "hostname={{ inputs.host }}"
+          - echo "kernel=Linux mock 6.x"
