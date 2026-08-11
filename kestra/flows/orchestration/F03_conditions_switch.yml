@@ -1,0 +1,40 @@
+id: F03_conditions_switch
+namespace: poc.kestra.orchestration
+description: "F03 - Conditions if/else et routage switch."
+labels: {poc.domain: orchestration, poc.usecase: F03}
+inputs:
+  - id: action
+    type: SELECT
+    defaults: start
+    values: [start, stop, status]
+  - id: urgent
+    type: BOOLEAN
+    defaults: false
+tasks:
+  - id: priorite
+    type: io.kestra.plugin.core.flow.If
+    condition: "{{ inputs.urgent }}"
+    then:
+      - id: log_urgent
+        type: io.kestra.plugin.core.log.Log
+        message: "Traitement prioritaire activé"
+    else:
+      - id: log_normal
+        type: io.kestra.plugin.core.log.Log
+        message: "Traitement normal"
+  - id: routage_action
+    type: io.kestra.plugin.core.flow.Switch
+    value: "{{ inputs.action }}"
+    cases:
+      start:
+        - id: demarrer
+          type: io.kestra.plugin.core.log.Log
+          message: "Démarrage demandé"
+      stop:
+        - id: arreter
+          type: io.kestra.plugin.core.log.Log
+          message: "Arrêt demandé"
+      status:
+        - id: statut
+          type: io.kestra.plugin.core.log.Log
+          message: "Statut demandé"

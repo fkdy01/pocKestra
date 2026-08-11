@@ -1,0 +1,33 @@
+id: F18_correlation_metier
+namespace: poc.kestra.orchestration
+description: "F18 - Corrélation ID métier entre logs, outputs et API mock."
+labels: {poc.domain: orchestration, poc.usecase: F18}
+inputs:
+  - id: correlation_id
+    type: STRING
+    defaults: SUB-48972
+  - id: mock_base_url
+    type: STRING
+    defaults: http://mock-api:8080
+tasks:
+  - id: ajouter_label_execution
+    type: io.kestra.plugin.core.execution.Labels
+    labels:
+      correlation_id: "{{ inputs.correlation_id }}"
+      usecase: F18
+  - id: creer_ticket_mock
+    type: io.kestra.plugin.core.http.Request
+    uri: "{{ inputs.mock_base_url }}/tickets"
+    method: POST
+    headers:
+      Content-Type: application/json
+      X-Correlation-Id: "{{ inputs.correlation_id }}"
+    body: |
+      {"correlation_id":"{{ inputs.correlation_id }}","title":"Test corrélation Kestra","severity":"low"}
+  - id: log_correlation
+    type: io.kestra.plugin.core.log.Log
+    message: "correlation_id={{ inputs.correlation_id }}, ticket={{ outputs.creer_ticket_mock.body }}"
+outputs:
+  - id: correlation_id
+    type: STRING
+    value: "{{ inputs.correlation_id }}"

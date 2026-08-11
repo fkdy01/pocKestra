@@ -1,0 +1,31 @@
+id: F17_compensation
+namespace: poc.kestra.orchestration
+description: "F17 - Compensation après réussite partielle puis erreur."
+labels: {poc.domain: orchestration, poc.usecase: F17}
+inputs:
+  - id: provoquer_erreur_finale
+    type: BOOLEAN
+    defaults: true
+tasks:
+  - id: reserver_ressource
+    type: io.kestra.plugin.core.debug.Return
+    format: "RES-{{ execution.id }}"
+  - id: action_finale
+    type: io.kestra.plugin.core.flow.If
+    condition: "{{ inputs.provoquer_erreur_finale }}"
+    then:
+      - id: echec_final
+        type: io.kestra.plugin.core.execution.Fail
+        errorMessage: "Erreur finale après réservation"
+    else:
+      - id: succes_final
+        type: io.kestra.plugin.core.log.Log
+        message: "Action finale réussie"
+errors:
+  - id: compenser
+    type: io.kestra.plugin.core.flow.Subflow
+    namespace: poc.kestra.orchestration
+    flowId: common_compensation
+    wait: true
+    inputs:
+      ressource_id: "{{ outputs.reserver_ressource.value }}"

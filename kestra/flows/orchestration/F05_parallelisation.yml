@@ -1,0 +1,25 @@
+id: F05_parallelisation
+namespace: poc.kestra.orchestration
+description: "F05 - Parallélisation contrôlée sur N serveurs."
+labels: {poc.domain: orchestration, poc.usecase: F05}
+inputs:
+  - id: serveurs
+    type: ARRAY
+    itemType: STRING
+    defaults: [srv-001, srv-002, srv-003, srv-004]
+  - id: concurrency_limit
+    type: INT
+    defaults: 2
+tasks:
+  - id: traitements_paralleles
+    type: io.kestra.plugin.core.flow.ForEach
+    values: "{{ inputs.serveurs }}"
+    concurrencyLimit: "{{ inputs.concurrency_limit }}"
+    tasks:
+      - id: traitement_serveur
+        type: io.kestra.plugin.scripts.shell.Commands
+        taskRunner: {type: io.kestra.plugin.core.runner.Process}
+        commands:
+          - echo "Début {{ taskrun.value }}"
+          - sleep 1
+          - echo "Fin {{ taskrun.value }}"

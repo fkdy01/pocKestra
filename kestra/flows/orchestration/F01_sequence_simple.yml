@@ -1,0 +1,22 @@
+id: F01_sequence_simple
+namespace: poc.kestra.orchestration
+description: "F01 - Flow séquentiel simple : valider inputs, tâches, outputs et logs."
+labels: {poc.domain: orchestration, poc.usecase: F01}
+inputs:
+  - id: demande_id
+    type: STRING
+    defaults: DEMO-001
+tasks:
+  - id: reception
+    type: io.kestra.plugin.core.log.Log
+    message: "Réception de la demande {{ inputs.demande_id }}"
+  - id: traitement
+    type: io.kestra.plugin.core.debug.Return
+    format: "Traitement terminé pour {{ inputs.demande_id }}"
+  - id: compte_rendu
+    type: io.kestra.plugin.core.log.Log
+    message: "Compte-rendu = {{ outputs.traitement.value }}"
+outputs:
+  - id: resultat
+    type: STRING
+    value: "{{ outputs.traitement.value }}"

@@ -1,0 +1,20 @@
+id: F06_subflow_parametres_retour
+namespace: poc.kestra.orchestration
+description: "F06 - Appel de subflow avec paramètres et retour de résultat."
+labels: {poc.domain: orchestration, poc.usecase: F06}
+inputs:
+  - id: serveur
+    type: STRING
+    defaults: srv-001
+tasks:
+  - id: controle_serveur
+    type: io.kestra.plugin.core.flow.Subflow
+    namespace: poc.kestra.orchestration
+    flowId: common_controle_serveur
+    wait: true
+    transmitFailed: true
+    inputs:
+      serveur: "{{ inputs.serveur }}"
+  - id: afficher_resultat
+    type: io.kestra.plugin.core.log.Log
+    message: "Résultat subflow = {{ outputs.controle_serveur.outputs.resultat }}"

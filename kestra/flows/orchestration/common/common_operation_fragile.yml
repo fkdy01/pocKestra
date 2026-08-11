@@ -1,0 +1,31 @@
+id: common_operation_fragile
+namespace: poc.kestra.orchestration
+description: "Sous-flow commun : opération fragile pouvant échouer."
+retry:
+  type: constant
+  interval: PT1S
+  maxAttempts: 2
+  behavior: RETRY_FAILED_TASK
+inputs:
+  - id: provoquer_erreur
+    type: BOOLEAN
+    defaults: true
+tasks:
+  - id: preparation
+    type: io.kestra.plugin.core.log.Log
+    message: "Préparation de l'opération fragile"
+  - id: controle
+    type: io.kestra.plugin.core.flow.If
+    condition: "{{ inputs.provoquer_erreur }}"
+    then:
+      - id: echec
+        type: io.kestra.plugin.core.execution.Fail
+        errorMessage: "Erreur volontaire du sous-flow"
+    else:
+      - id: succes
+        type: io.kestra.plugin.core.debug.Return
+        format: "OK"
+outputs:
+  - id: resultat
+    type: STRING
+    value: "{{ outputs.succes.value | default('FAILED', true) }}"

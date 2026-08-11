@@ -1,0 +1,22 @@
+id: F20_gros_outputs_logs
+namespace: poc.kestra.orchestration
+description: "F20 - Gros volume d'outputs/logs pour tester stockage interne et lisibilité UI."
+labels: {poc.domain: orchestration, poc.usecase: F20}
+inputs:
+  - id: lignes
+    type: INT
+    defaults: 1000
+tasks:
+  - id: generer_fichier
+    type: io.kestra.plugin.scripts.shell.Commands
+    taskRunner: {type: io.kestra.plugin.core.runner.Process}
+    outputFiles:
+      - output.log
+    commands:
+      - for i in $(seq 1 {{ inputs.lignes }}); do echo "ligne=$i execution={{ execution.id }}" >> output.log; done
+  - id: mesurer_fichier
+    type: io.kestra.plugin.core.storage.Size
+    uri: "{{ outputs.generer_fichier.outputFiles['output.log'] }}"
+  - id: compte_rendu
+    type: io.kestra.plugin.core.log.Log
+    message: "Fichier généré={{ outputs.generer_fichier.outputFiles['output.log'] }}, taille={{ outputs.mesurer_fichier.size }}"

@@ -1,0 +1,15 @@
+id: common_compensation
+namespace: poc.kestra.orchestration
+description: "Sous-flow commun : compensation d'une ressource réservée."
+inputs:
+  - id: ressource_id
+    type: STRING
+    required: true
+tasks:
+  - id: liberer_ressource
+    type: io.kestra.plugin.core.log.Log
+    message: "Compensation : libération de la ressource {{ inputs.ressource_id }}"
+outputs:
+  - id: compensation
+    type: STRING
+    value: "COMPENSATED:{{ inputs.ressource_id }}"

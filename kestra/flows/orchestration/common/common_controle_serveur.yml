@@ -1,0 +1,15 @@
+id: common_controle_serveur
+namespace: poc.kestra.orchestration
+description: "Sous-flow commun : contrôle simulé d'un serveur."
+inputs:
+  - id: serveur
+    type: STRING
+    required: true
+tasks:
+  - id: ping_simule
+    type: io.kestra.plugin.core.debug.Return
+    format: "{{ inputs.serveur }}:OK"
+outputs:
+  - id: resultat
+    type: STRING
+    value: "{{ outputs.ping_simule.value }}"

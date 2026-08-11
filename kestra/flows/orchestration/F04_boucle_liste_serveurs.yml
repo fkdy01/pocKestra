@@ -1,0 +1,17 @@
+id: F04_boucle_liste_serveurs
+namespace: poc.kestra.orchestration
+description: "F04 - Boucle sur une liste de serveurs."
+labels: {poc.domain: orchestration, poc.usecase: F04}
+inputs:
+  - id: serveurs
+    type: ARRAY
+    itemType: STRING
+    defaults: [srv-001, srv-002, srv-003]
+tasks:
+  - id: pour_chaque_serveur
+    type: io.kestra.plugin.core.flow.ForEach
+    values: "{{ inputs.serveurs }}"
+    tasks:
+      - id: journaliser_serveur
+        type: io.kestra.plugin.core.log.Log
+        message: "Traitement du serveur {{ taskrun.value }} itération {{ taskrun.iteration }}"

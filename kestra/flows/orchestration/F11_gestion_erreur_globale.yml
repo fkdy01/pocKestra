@@ -1,0 +1,12 @@
+id: F11_gestion_erreur_globale
+namespace: poc.kestra.orchestration
+description: "F11 - Gestion d'erreur globale du flow."
+labels: {poc.domain: orchestration, poc.usecase: F11}
+tasks:
+  - id: action_critique
+    type: io.kestra.plugin.core.execution.Fail
+    errorMessage: "Erreur critique simulée"
+errors:
+  - id: creer_alerte
+    type: io.kestra.plugin.core.log.Log
+    message: "Alerte globale : flow={{ flow.id }}, execution={{ execution.id }}"
