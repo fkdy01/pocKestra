@@ -1330,3 +1330,4 @@ Pour toute anomalie, relever :
 - le worker concerné si visible ;
 - le comportement attendu ;
 - le comportement observé.
+
