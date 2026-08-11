@@ -1,0 +1,36 @@
+id: G05_rollback_applicatif
+namespace: poc.kestra.gouvernance
+description: "G05 - Rollback applicatif : tracer un retour à une version précédente."
+labels: {poc.domain: gouvernance, poc.usecase: G05}
+inputs:
+  - id: mock_base_url
+    type: STRING
+    defaults: http://mock-api:8080
+  - id: application
+    type: STRING
+    defaults: poc-kestra
+  - id: version_actuelle
+    type: STRING
+    defaults: 1.1.0
+  - id: version_cible
+    type: STRING
+    defaults: 1.0.0
+  - id: motif
+    type: STRING
+    defaults: Incident après mise en production
+tasks:
+  - id: tracer_rollback
+    type: io.kestra.plugin.core.http.Request
+    uri: "{{ inputs.mock_base_url }}/governance/releases"
+    method: POST
+    headers:
+      Content-Type: application/json
+    body: |
+      {"application":"{{ inputs.application }}","version":"{{ inputs.version_cible }}","previous_version":"{{ inputs.version_actuelle }}","environment":"prod","operation":"rollback","reason":"{{ inputs.motif }}","execution":"{{ execution.id }}"}
+  - id: journaliser_rollback
+    type: io.kestra.plugin.core.log.Log
+    message: "Rollback {{ inputs.application }} de {{ inputs.version_actuelle }} vers {{ inputs.version_cible }} : {{ inputs.motif }}"
+outputs:
+  - id: rollback_trace
+    type: STRING
+    value: "{{ outputs.tracer_rollback.body }}"
