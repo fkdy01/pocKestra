@@ -1,0 +1,44 @@
+id: G10_worker_group_zone_os
+namespace: poc.kestra.gouvernance
+description: "G10 - Worker group par zone/OS : vérifier le routage logique des exécutions."
+labels: {poc.domain: gouvernance, poc.usecase: G10}
+inputs:
+  - id: mock_base_url
+    type: STRING
+    defaults: http://mock-api:8080
+  - id: zone
+    type: SELECT
+    defaults: outils
+    values: [outils, admin, exposition, sccm]
+  - id: os_cible
+    type: SELECT
+    defaults: linux
+    values: [linux, windows]
+  - id: executer_tache_worker_reelle
+    type: BOOLEAN
+    defaults: false
+tasks:
+  - id: controler_routage_worker
+    type: io.kestra.plugin.core.http.Request
+    uri: "{{ inputs.mock_base_url }}/governance/worker-groups/check"
+    method: POST
+    headers:
+      Content-Type: application/json
+    body: |
+      {"zone":"{{ inputs.zone }}","os":"{{ inputs.os_cible }}","execution":"{{ execution.id }}"}
+  - id: afficher_decision
+    type: io.kestra.plugin.core.log.Log
+    message: "Décision worker group={{ outputs.controler_routage_worker.body }}"
+  - id: tache_worker_reelle_optionnelle
+    type: io.kestra.plugin.core.flow.If
+    condition: "{{ inputs.executer_tache_worker_reelle }}"
+    then:
+      - id: exemple_linux_outils
+        type: io.kestra.plugin.core.log.Log
+        message: "Tâche d'exemple routée vers linux-outils."
+        workerGroup:
+          key: linux-outils
+outputs:
+  - id: worker_group_decision
+    type: STRING
+    value: "{{ outputs.controler_routage_worker.body }}"
