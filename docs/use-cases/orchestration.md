@@ -40,6 +40,14 @@ L'API FastAPI située dans `mock-api/` simule un SI externe : healthcheck, echo,
 | F19 | `F19_secrets` | Secret non stocké en clair | Référence `secret()` |
 | F20 | `F20_gros_outputs_logs` | Gros output/logs | Fichier output et taille |
 
+## Mode opératoire testeur
+
+Le déroulé pas-à-pas pour un testeur non spécialiste Kestra est disponible ici :
+
+```text
+docs/test-guides/orchestration.md
+```
+
 ## Points de vigilance
 
 - Les flows utilisent parfois le `Process` task runner pour les scripts Shell de test : à borner par worker group, compte OS dédié et allowlist de plugins.
