@@ -48,3 +48,4 @@ F01_F01_sequence_simple_3pZxA1_20260811.png
 | KO | Le résultat attendu n'est pas obtenu. |
 | Non testé | Le test n'a pas pu être exécuté. |
 | Non applicable | Le cas ne s'applique pas à l'environnement testé. |
+
