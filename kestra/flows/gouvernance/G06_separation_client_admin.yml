@@ -1,0 +1,40 @@
+id: G06_separation_client_admin
+namespace: poc.kestra.gouvernance
+description: "G06 - Séparation client / administration : refuser les actions admin aux profils clients."
+labels: {poc.domain: gouvernance, poc.usecase: G06}
+inputs:
+  - id: mock_base_url
+    type: STRING
+    defaults: http://mock-api:8080
+  - id: profile
+    type: SELECT
+    defaults: client
+    values: [client, admin]
+  - id: action
+    type: SELECT
+    defaults: execute_flow
+    values: [execute_flow, manage_rbac, view_audit]
+tasks:
+  - id: verifier_rbac
+    type: io.kestra.plugin.core.http.Request
+    uri: "{{ inputs.mock_base_url }}/governance/rbac/check"
+    method: POST
+    headers:
+      Content-Type: application/json
+    body: |
+      {"profile":"{{ inputs.profile }}","action":"{{ inputs.action }}","execution":"{{ execution.id }}"}
+  - id: bloquer_si_refuse
+    type: io.kestra.plugin.core.flow.If
+    condition: "{{ outputs.verifier_rbac.body contains 'DENIED' }}"
+    then:
+      - id: action_refusee
+        type: io.kestra.plugin.core.execution.Fail
+        errorMessage: "Action refusée par le contrôle RBAC mock."
+    else:
+      - id: action_autorisee
+        type: io.kestra.plugin.core.log.Log
+        message: "Action autorisée par le contrôle RBAC mock."
+outputs:
+  - id: rbac_decision
+    type: STRING
+    value: "{{ outputs.verifier_rbac.body }}"

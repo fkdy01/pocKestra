@@ -1,0 +1,39 @@
+id: G09_multi_tenant_namespace
+namespace: poc.kestra.gouvernance
+description: "G09 - Multi-tenant / namespace : vérifier isolation logique et convention de nommage."
+labels: {poc.domain: gouvernance, poc.usecase: G09}
+inputs:
+  - id: mock_base_url
+    type: STRING
+    defaults: http://mock-api:8080
+  - id: tenant
+    type: SELECT
+    defaults: client-a
+    values: [client-a, client-b, admin]
+  - id: namespace_cible
+    type: STRING
+    defaults: poc.kestra.client-a
+tasks:
+  - id: controler_namespace
+    type: io.kestra.plugin.core.http.Request
+    uri: "{{ inputs.mock_base_url }}/governance/tenants/check"
+    method: POST
+    headers:
+      Content-Type: application/json
+    body: |
+      {"tenant":"{{ inputs.tenant }}","namespace":"{{ inputs.namespace_cible }}","execution":"{{ execution.id }}"}
+  - id: bloquer_si_non_conforme
+    type: io.kestra.plugin.core.flow.If
+    condition: "{{ outputs.controler_namespace.body contains 'DENIED' }}"
+    then:
+      - id: namespace_refuse
+        type: io.kestra.plugin.core.execution.Fail
+        errorMessage: "Namespace non autorisé pour ce tenant."
+    else:
+      - id: namespace_accepte
+        type: io.kestra.plugin.core.log.Log
+        message: "Namespace autorisé pour ce tenant."
+outputs:
+  - id: tenant_decision
+    type: STRING
+    value: "{{ outputs.controler_namespace.body }}"

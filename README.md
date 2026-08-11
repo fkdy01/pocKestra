@@ -10,6 +10,7 @@ Le contenu est organisé par onglet de la grille d'évaluation : orchestration, 
 kestra/flows/orchestration/     # flows F01 à F20
 kestra/flows/infrastructure/    # flows I01 à I15
 kestra/flows/exploitation/      # flows R01 à R10
+kestra/flows/gouvernance/       # flows G01 à G10
 docs/use-cases/                 # catalogues par famille de cas d'usage
 docs/test-guides/               # modes opératoires testeur
 mock-api/                       # API FastAPI de simulation

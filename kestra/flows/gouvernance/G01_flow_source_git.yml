@@ -1,0 +1,25 @@
+id: G01_flow_source_git
+namespace: poc.kestra.gouvernance
+description: "G01 - Flow source dans Git : relier une exécution au fichier YAML source."
+labels: {poc.domain: gouvernance, poc.usecase: G01}
+inputs:
+  - id: repository_url
+    type: STRING
+    defaults: https://github.com/fkdy01/pocKestra
+  - id: commit_sha
+    type: STRING
+    defaults: A_RENSEIGNER
+  - id: flow_path
+    type: STRING
+    defaults: kestra/flows/gouvernance/G01_flow_source_git.yml
+tasks:
+  - id: tracer_source_git
+    type: io.kestra.plugin.core.debug.Return
+    format: "repo={{ inputs.repository_url }}, commit={{ inputs.commit_sha }}, path={{ inputs.flow_path }}"
+  - id: journaliser_source
+    type: io.kestra.plugin.core.log.Log
+    message: "Source Git du flow : {{ outputs.tracer_source_git.value }}"
+outputs:
+  - id: source_trace
+    type: STRING
+    value: "{{ outputs.tracer_source_git.value }}"

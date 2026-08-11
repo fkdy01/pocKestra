@@ -1,0 +1,45 @@
+id: G03_deploiement_dev_recette_prod
+namespace: poc.kestra.gouvernance
+description: "G03 - Promotion dev -> recette -> prod avec approbation obligatoire pour la production."
+labels: {poc.domain: gouvernance, poc.usecase: G03}
+inputs:
+  - id: mock_base_url
+    type: STRING
+    defaults: http://mock-api:8080
+  - id: application
+    type: STRING
+    defaults: poc-kestra
+  - id: version
+    type: STRING
+    defaults: 1.0.0
+  - id: environnement
+    type: SELECT
+    defaults: recette
+    values: [dev, recette, prod]
+  - id: approbation
+    type: BOOLEAN
+    defaults: false
+tasks:
+  - id: controler_approbation_prod
+    type: io.kestra.plugin.core.flow.If
+    condition: "{{ inputs.environnement == 'prod' and inputs.approbation == false }}"
+    then:
+      - id: prod_non_approuvee
+        type: io.kestra.plugin.core.execution.Fail
+        errorMessage: "Déploiement prod interdit sans approbation explicite."
+    else:
+      - id: prod_ou_non_prod_autorise
+        type: io.kestra.plugin.core.log.Log
+        message: "Promotion autorisée vers {{ inputs.environnement }}."
+  - id: tracer_promotion
+    type: io.kestra.plugin.core.http.Request
+    uri: "{{ inputs.mock_base_url }}/governance/releases"
+    method: POST
+    headers:
+      Content-Type: application/json
+    body: |
+      {"application":"{{ inputs.application }}","version":"{{ inputs.version }}","environment":"{{ inputs.environnement }}","approved":{{ inputs.approbation }},"operation":"deploy","execution":"{{ execution.id }}"}
+outputs:
+  - id: promotion
+    type: STRING
+    value: "{{ outputs.tracer_promotion.body }}"
