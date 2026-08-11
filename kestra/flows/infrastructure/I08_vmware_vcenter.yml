@@ -1,0 +1,30 @@
+id: I08_vmware_vcenter
+namespace: poc.kestra.infrastructure
+description: "I08 - Appel VMware/vCenter simulé : demande de création de VM."
+labels: {poc.domain: infrastructure, poc.usecase: I08}
+inputs:
+  - id: mock_base_url
+    type: STRING
+    defaults: http://mock-api:8080
+  - id: vm_name
+    type: STRING
+    defaults: poc-vm-001
+  - id: template
+    type: STRING
+    defaults: rhel9-small
+tasks:
+  - id: creer_vm_mock
+    type: io.kestra.plugin.core.http.Request
+    uri: "{{ inputs.mock_base_url }}/vmware/vms"
+    method: POST
+    headers:
+      Content-Type: application/json
+    body: |
+      {"name":"{{ inputs.vm_name }}","template":"{{ inputs.template }}","cpu":2,"memory_gb":4}
+  - id: journaliser_vm
+    type: io.kestra.plugin.core.log.Log
+    message: "VM simulée={{ outputs.creer_vm_mock.body }}"
+outputs:
+  - id: vm_response
+    type: STRING
+    value: "{{ outputs.creer_vm_mock.body }}"

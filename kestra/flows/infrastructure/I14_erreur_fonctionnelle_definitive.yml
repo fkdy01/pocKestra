@@ -1,0 +1,20 @@
+id: I14_erreur_fonctionnelle_definitive
+namespace: poc.kestra.infrastructure
+description: "I14 - Erreur fonctionnelle définitive : serveur inconnu, échec attendu et alerte."
+labels: {poc.domain: infrastructure, poc.usecase: I14}
+inputs:
+  - id: mock_base_url
+    type: STRING
+    defaults: http://mock-api:8080
+  - id: server
+    type: STRING
+    defaults: srv-inconnu
+tasks:
+  - id: rechercher_serveur
+    type: io.kestra.plugin.core.http.Request
+    uri: "{{ inputs.mock_base_url }}/cmdb/servers/{{ inputs.server }}"
+    method: GET
+errors:
+  - id: journaliser_erreur_fonctionnelle
+    type: io.kestra.plugin.core.log.Log
+    message: "Erreur fonctionnelle attendue : serveur {{ inputs.server }} introuvable ou non éligible."

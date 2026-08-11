@@ -1,0 +1,30 @@
+id: I06_worker_linux_podman
+namespace: poc.kestra.infrastructure
+description: "I06 - Worker Linux Podman : vérifier l'exécution locale d'une commande conteneurisée ou simulée."
+labels: {poc.domain: infrastructure, poc.usecase: I06}
+inputs:
+  - id: image
+    type: STRING
+    defaults: alpine:3.20
+  - id: use_podman
+    type: BOOLEAN
+    defaults: false
+tasks:
+  - id: mode_execution
+    type: io.kestra.plugin.core.flow.If
+    condition: "{{ inputs.use_podman }}"
+    then:
+      - id: podman_reel
+        type: io.kestra.plugin.scripts.shell.Commands
+        taskRunner: {type: io.kestra.plugin.core.runner.Process}
+        commands:
+          - podman run --rm {{ inputs.image }} sh -c 'echo "podman ok"; uname -a'
+        workerGroup:
+          key: linux-podman
+    else:
+      - id: podman_mock
+        type: io.kestra.plugin.scripts.shell.Commands
+        taskRunner: {type: io.kestra.plugin.core.runner.Process}
+        commands:
+          - echo "MOCK podman image={{ inputs.image }}"
+          - echo "worker linux podman simulé"

@@ -1,0 +1,25 @@
+id: I13_erreur_fournisseur_temporaire
+namespace: poc.kestra.infrastructure
+description: "I13 - Erreur fournisseur temporaire : API instable puis succès après retry."
+labels: {poc.domain: infrastructure, poc.usecase: I13}
+inputs:
+  - id: mock_base_url
+    type: STRING
+    defaults: http://mock-api:8080
+  - id: key
+    type: STRING
+    defaults: infra-provider-demo
+tasks:
+  - id: appeler_api_instable
+    type: io.kestra.plugin.core.http.Request
+    uri: "{{ inputs.mock_base_url }}/unstable/{{ inputs.key }}"
+    method: GET
+    retry:
+      type: constant
+      interval: PT2S
+      maxAttempts: 5
+      maxDuration: PT30S
+      warningOnRetry: true
+  - id: compte_rendu
+    type: io.kestra.plugin.core.log.Log
+    message: "Succès fournisseur après retry={{ outputs.appeler_api_instable.body }}"

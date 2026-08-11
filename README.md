@@ -2,19 +2,22 @@
 
 Dépôt de travail pour le POC Kestra Enterprise en mode JDBC sur VM.
 
-## Lot en cours : onglet orchestration
+Le contenu est organisé par onglet de la grille d'évaluation : orchestration, infrastructure, exploitation, gouvernance, etc.
 
-Ce lot couvre les cas d'usage F01 à F20 de l'onglet **orchestration**.
-
-Arborescence :
+## Structure
 
 ```text
-kestra/flows/orchestration/        # flows Kestra de test F01-F20
-kestra/flows/orchestration/common/ # sous-flows réutilisables
-docs/use-cases/orchestration.md    # scénario, objectif, attendu et preuves
-mock-api/                          # API FastAPI simulant un SI externe
-docker-compose.yml                 # mock API locale pour les flows HTTP
-scripts/validate_yaml.py           # contrôle syntaxique YAML hors Kestra
+kestra/flows/orchestration/     # flows F01 à F20
+kestra/flows/infrastructure/    # flows I01 à I15
+docs/use-cases/                 # catalogues par famille de cas d'usage
+docs/test-guides/               # modes opératoires testeur
+mock-api/                       # API FastAPI de simulation
+scripts/validate_yaml.py        # validation syntaxique YAML
 ```
 
-Les flows utilisent le namespace `poc.kestra.orchestration` et sont volontairement pédagogiques : ils cherchent à démontrer un comportement orchestration équivalent aux patterns HPOO.
+## Validation locale
+
+```bash
+docker compose up -d mock-api
+python3 scripts/validate_yaml.py
+```

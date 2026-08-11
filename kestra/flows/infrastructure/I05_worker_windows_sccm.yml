@@ -1,0 +1,32 @@
+id: I05_worker_windows_sccm
+namespace: poc.kestra.infrastructure
+description: "I05 - Worker Windows SCCM : simulation de déploiement SCCM et routage worker group."
+labels: {poc.domain: infrastructure, poc.usecase: I05}
+inputs:
+  - id: mock_base_url
+    type: STRING
+    defaults: http://mock-api:8080
+  - id: collection
+    type: STRING
+    defaults: POC-COLLECTION
+  - id: package
+    type: STRING
+    defaults: POC-PACKAGE
+tasks:
+  - id: verifier_routage
+    type: io.kestra.plugin.core.log.Log
+    message: "Ce cas doit être exécuté sur un worker group Windows SCCM en cible."
+  - id: creer_deploiement_sccm_mock
+    type: io.kestra.plugin.core.http.Request
+    uri: "{{ inputs.mock_base_url }}/sccm/deployments"
+    method: POST
+    headers:
+      Content-Type: application/json
+    body: |
+      {"collection":"{{ inputs.collection }}","package":"{{ inputs.package }}","requested_by":"kestra"}
+    workerGroup:
+      key: windows-sccm
+outputs:
+  - id: sccm_deployment
+    type: STRING
+    value: "{{ outputs.creer_deploiement_sccm_mock.body }}"

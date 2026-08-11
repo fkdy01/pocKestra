@@ -1,0 +1,20 @@
+id: I15_annulation_execution_longue
+namespace: poc.kestra.infrastructure
+description: "I15 - Annulation d'une exécution longue : vérifier l'arrêt manuel et les traces associées."
+labels: {poc.domain: infrastructure, poc.usecase: I15}
+inputs:
+  - id: duree_secondes
+    type: INT
+    defaults: 120
+tasks:
+  - id: traitement_long
+    type: io.kestra.plugin.scripts.shell.Commands
+    taskRunner: {type: io.kestra.plugin.core.runner.Process}
+    commands:
+      - echo "Début traitement long execution={{ execution.id }}"
+      - sleep {{ inputs.duree_secondes }}
+      - echo "Fin traitement long"
+finally:
+  - id: trace_fin
+    type: io.kestra.plugin.core.log.Log
+    message: "Fin ou arrêt du scénario I15 pour execution={{ execution.id }}"

@@ -1,0 +1,31 @@
+id: I02_itsm_changement_mock
+namespace: poc.kestra.infrastructure
+description: "I02 - Appel ITSM simulé : création d'un changement et corrélation avec la demande."
+labels: {poc.domain: infrastructure, poc.usecase: I02}
+inputs:
+  - id: mock_base_url
+    type: STRING
+    defaults: http://mock-api:8080
+  - id: correlation_id
+    type: STRING
+    defaults: CHG-DEMO-001
+  - id: title
+    type: STRING
+    defaults: "POC Kestra - changement infrastructure"
+tasks:
+  - id: creer_changement
+    type: io.kestra.plugin.core.http.Request
+    uri: "{{ inputs.mock_base_url }}/itsm/changes"
+    method: POST
+    headers:
+      Content-Type: application/json
+      X-Correlation-Id: "{{ inputs.correlation_id }}"
+    body: |
+      {"correlation_id":"{{ inputs.correlation_id }}","title":"{{ inputs.title }}","risk":"low"}
+  - id: journaliser_changement
+    type: io.kestra.plugin.core.log.Log
+    message: "Changement créé={{ outputs.creer_changement.body }}"
+outputs:
+  - id: change_response
+    type: STRING
+    value: "{{ outputs.creer_changement.body }}"

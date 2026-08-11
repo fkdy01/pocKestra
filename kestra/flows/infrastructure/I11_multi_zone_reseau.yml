@@ -1,0 +1,26 @@
+id: I11_multi_zone_reseau
+namespace: poc.kestra.infrastructure
+description: "I11 - Traitement multi-zone réseau : vérifier que le worker atteint uniquement les zones autorisées."
+labels: {poc.domain: infrastructure, poc.usecase: I11}
+inputs:
+  - id: mock_base_url
+    type: STRING
+    defaults: http://mock-api:8080
+  - id: zone
+    type: SELECT
+    defaults: outils
+    values: [outils, admin, exposition, interdite]
+tasks:
+  - id: verifier_acces_zone
+    type: io.kestra.plugin.core.http.Request
+    uri: "{{ inputs.mock_base_url }}/zones/{{ inputs.zone }}/reachability"
+    method: GET
+    options:
+      allowFailed: true
+  - id: evaluer_reponse
+    type: io.kestra.plugin.core.log.Log
+    message: "Zone={{ inputs.zone }}, réponse={{ outputs.verifier_acces_zone.body }}, code={{ outputs.verifier_acces_zone.code }}"
+outputs:
+  - id: zone_response
+    type: STRING
+    value: "{{ outputs.verifier_acces_zone.body }}"

@@ -1,0 +1,33 @@
+id: I07_ansible_aap
+namespace: poc.kestra.infrastructure
+description: "I07 - Appel Ansible/AAP simulé : lancement d'un job template puis polling du résultat."
+labels: {poc.domain: infrastructure, poc.usecase: I07}
+inputs:
+  - id: mock_base_url
+    type: STRING
+    defaults: http://mock-api:8080
+  - id: template_id
+    type: STRING
+    defaults: "42"
+  - id: inventory
+    type: STRING
+    defaults: poc-inventory
+tasks:
+  - id: lancer_job
+    type: io.kestra.plugin.core.http.Request
+    uri: "{{ inputs.mock_base_url }}/aap/job-templates/{{ inputs.template_id }}/launch"
+    method: POST
+    headers:
+      Content-Type: application/json
+    body: |
+      {"inventory":"{{ inputs.inventory }}","extra_vars":{"source":"kestra","usecase":"I07"}}
+  - id: attendre_traitement
+    type: io.kestra.plugin.core.flow.Sleep
+    duration: PT2S
+  - id: lire_statut_job
+    type: io.kestra.plugin.core.http.Request
+    uri: "{{ inputs.mock_base_url }}/aap/jobs/{{ outputs.lancer_job.body | jq('.job_id') | first }}"
+    method: GET
+  - id: compte_rendu
+    type: io.kestra.plugin.core.log.Log
+    message: "Job AAP={{ outputs.lire_statut_job.body }}"
