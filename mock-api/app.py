@@ -173,3 +173,8 @@ def operation_status(operation_id: str):
     polls = operations[operation_id]["polls"]
     status = "DONE" if polls >= 3 else "RUNNING"
     return {"operation_id": operation_id, "status": status, "polls": polls}
+
+
+from exploitation_support import register_exploitation_routes
+
+register_exploitation_routes(app)
