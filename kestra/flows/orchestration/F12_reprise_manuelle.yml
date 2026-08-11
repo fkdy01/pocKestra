@@ -1,0 +1,20 @@
+id: F12_reprise_manuelle
+namespace: poc.kestra.orchestration
+description: "F12 - Reprise manuelle après correction d'un paramètre."
+labels: {poc.domain: orchestration, poc.usecase: F12}
+inputs:
+  - id: code_validation
+    type: STRING
+    defaults: KO
+tasks:
+  - id: verifier_code
+    type: io.kestra.plugin.core.flow.If
+    condition: "{{ inputs.code_validation == 'OK' }}"
+    then:
+      - id: traitement_apres_correction
+        type: io.kestra.plugin.core.log.Log
+        message: "Paramètre corrigé, reprise possible."
+    else:
+      - id: bloquer
+        type: io.kestra.plugin.core.execution.Fail
+        errorMessage: "Mettre code_validation=OK puis rejouer."

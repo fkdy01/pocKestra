@@ -1,0 +1,24 @@
+id: F15_execution_api_evenementielle
+namespace: poc.kestra.orchestration
+description: "F15 - Exécution déclenchée par API ou webhook externe, avec appel mock API."
+labels: {poc.domain: orchestration, poc.usecase: F15}
+inputs:
+  - id: mock_base_url
+    type: STRING
+    defaults: http://mock-api:8080
+  - id: correlation_id
+    type: STRING
+    defaults: DEMO-CORR-001
+tasks:
+  - id: notifier_mock
+    type: io.kestra.plugin.core.http.Request
+    uri: "{{ inputs.mock_base_url }}/echo"
+    method: POST
+    headers:
+      X-Correlation-Id: "{{ inputs.correlation_id }}"
+      Content-Type: application/json
+    body: |
+      {"source":"kestra","execution":"{{ execution.id }}","usecase":"F15"}
+  - id: afficher_retour
+    type: io.kestra.plugin.core.log.Log
+    message: "Réponse mock={{ outputs.notifier_mock.body }}"

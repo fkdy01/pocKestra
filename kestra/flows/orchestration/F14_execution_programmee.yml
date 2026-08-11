@@ -1,0 +1,12 @@
+id: F14_execution_programmee
+namespace: poc.kestra.orchestration
+description: "F14 - Exécution programmée pour tester le scheduler."
+labels: {poc.domain: orchestration, poc.usecase: F14}
+triggers:
+  - id: toutes_les_15_minutes
+    type: io.kestra.plugin.core.trigger.Schedule
+    cron: "*/15 * * * *"
+tasks:
+  - id: tick
+    type: io.kestra.plugin.core.log.Log
+    message: "Déclenchement planifié execution={{ execution.id }} date={{ trigger.date }}"

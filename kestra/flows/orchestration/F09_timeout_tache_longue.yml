@@ -1,0 +1,20 @@
+id: F09_timeout_tache_longue
+namespace: poc.kestra.orchestration
+description: "F09 - Timeout de tâche longue."
+labels: {poc.domain: orchestration, poc.usecase: F09}
+inputs:
+  - id: duree_secondes
+    type: INT
+    defaults: 10
+tasks:
+  - id: tache_trop_longue
+    type: io.kestra.plugin.scripts.shell.Commands
+    taskRunner: {type: io.kestra.plugin.core.runner.Process}
+    timeout: PT5S
+    commands:
+      - echo "Démarrage tâche longue"
+      - sleep {{ inputs.duree_secondes }}
+errors:
+  - id: timeout_attendu
+    type: io.kestra.plugin.core.log.Log
+    message: "Erreur attendue : timeout."

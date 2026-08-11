@@ -1,0 +1,7 @@
+services:
+  mock-api:
+    build: ./mock-api
+    ports:
+      - "18080:8080"
+    environment:
+      - MOCK_API_FAILURES_BEFORE_SUCCESS=2

@@ -1,0 +1,14 @@
+id: F10_gestion_erreur_locale
+namespace: poc.kestra.orchestration
+description: "F10 - Gestion d'erreur locale dans une branche allowFailure."
+labels: {poc.domain: orchestration, poc.usecase: F10}
+tasks:
+  - id: branche_non_bloquante
+    type: io.kestra.plugin.core.flow.AllowFailure
+    tasks:
+      - id: controle_optionnel
+        type: io.kestra.plugin.core.execution.Fail
+        errorMessage: "Contrôle optionnel volontairement en erreur"
+  - id: poursuivre
+    type: io.kestra.plugin.core.log.Log
+    message: "Le flow continue malgré l'erreur locale contrôlée."

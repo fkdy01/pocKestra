@@ -1,0 +1,13 @@
+id: F13_pause_approbation_humaine
+namespace: poc.kestra.orchestration
+description: "F13 - Pause et reprise manuelle simulant une approbation humaine."
+labels: {poc.domain: orchestration, poc.usecase: F13}
+tasks:
+  - id: preparation
+    type: io.kestra.plugin.core.log.Log
+    message: "Préparation terminée : attendre approbation exploitant."
+  - id: attente_approbation
+    type: io.kestra.plugin.core.flow.Pause
+  - id: execution_apres_approbation
+    type: io.kestra.plugin.core.log.Log
+    message: "Exécution reprise après approbation."

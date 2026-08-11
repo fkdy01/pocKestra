@@ -1,0 +1,21 @@
+id: F07_subflow_erreur_reprise
+namespace: poc.kestra.orchestration
+description: "F07 - Subflow en erreur et reprise contrôlée."
+labels: {poc.domain: orchestration, poc.usecase: F07}
+inputs:
+  - id: provoquer_erreur
+    type: BOOLEAN
+    defaults: true
+tasks:
+  - id: operation_fragile
+    type: io.kestra.plugin.core.flow.Subflow
+    namespace: poc.kestra.orchestration
+    flowId: common_operation_fragile
+    wait: true
+    transmitFailed: true
+    inputs:
+      provoquer_erreur: "{{ inputs.provoquer_erreur }}"
+errors:
+  - id: journaliser_echec_parent
+    type: io.kestra.plugin.core.log.Log
+    message: "Le subflow a échoué ; rejouer avec provoquer_erreur=false."

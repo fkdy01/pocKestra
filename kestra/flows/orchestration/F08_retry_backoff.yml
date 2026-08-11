@@ -1,0 +1,16 @@
+id: F08_retry_backoff
+namespace: poc.kestra.orchestration
+description: "F08 - Retry avec backoff constant sur erreur temporaire."
+labels: {poc.domain: orchestration, poc.usecase: F08}
+tasks:
+  - id: api_temporairement_indisponible
+    type: io.kestra.plugin.scripts.shell.Commands
+    taskRunner: {type: io.kestra.plugin.core.runner.Process}
+    commands:
+      - 'if [ "{{ taskrun.attemptsCount }}" -lt 2 ]; then echo "échec temporaire"; exit 1; else echo "succès après retry"; fi'
+    retry:
+      type: constant
+      interval: PT2S
+      maxAttempts: 4
+      maxDuration: PT30S
+      warningOnRetry: true

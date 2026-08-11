@@ -1,0 +1,19 @@
+id: F16_idempotence
+namespace: poc.kestra.orchestration
+description: "F16 - Idempotence : rejouer sans effet de bord dangereux."
+labels: {poc.domain: orchestration, poc.usecase: F16}
+inputs:
+  - id: demande_id
+    type: STRING
+    defaults: DEMO-001
+tasks:
+  - id: calcul_cle_idempotence
+    type: io.kestra.plugin.core.debug.Return
+    format: "{{ flow.id }}:{{ inputs.demande_id }}"
+  - id: action_idempotente
+    type: io.kestra.plugin.core.log.Log
+    message: "Action simulée avec clé idempotence={{ outputs.calcul_cle_idempotence.value }}."
+outputs:
+  - id: idempotency_key
+    type: STRING
+    value: "{{ outputs.calcul_cle_idempotence.value }}"

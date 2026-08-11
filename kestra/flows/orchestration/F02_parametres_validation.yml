@@ -1,0 +1,30 @@
+id: F02_parametres_validation
+namespace: poc.kestra.orchestration
+description: "F02 - Paramètres obligatoires/facultatifs et validation simple."
+labels: {poc.domain: orchestration, poc.usecase: F02}
+inputs:
+  - id: serveur
+    type: STRING
+    required: true
+  - id: environnement
+    type: SELECT
+    defaults: dev
+    values: [dev, recette, prod]
+  - id: dry_run
+    type: BOOLEAN
+    defaults: true
+tasks:
+  - id: afficher_contexte
+    type: io.kestra.plugin.core.debug.Return
+    format: "serveur={{ inputs.serveur }}, environnement={{ inputs.environnement }}, dry_run={{ inputs.dry_run }}"
+  - id: proteger_prod
+    type: io.kestra.plugin.core.flow.If
+    condition: "{{ inputs.environnement == 'prod' and inputs.dry_run == false }}"
+    then:
+      - id: demande_validation
+        type: io.kestra.plugin.core.log.Log
+        message: "Action réelle en production : validation externe requise."
+    else:
+      - id: execution_autorisee
+        type: io.kestra.plugin.core.log.Log
+        message: "Exécution autorisée."
