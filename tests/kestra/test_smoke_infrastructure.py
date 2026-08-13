@@ -32,4 +32,4 @@ def test_i13_erreur_fournisseur_temporaire(kestra_client, repo_root):
         timeout_seconds=180,
     )
 
-    assert_state(execution, "SUCCESS")
+    assert_state(execution, "WARNING")
