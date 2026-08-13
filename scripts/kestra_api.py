@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import json
 import os
 import time
 from dataclasses import dataclass
@@ -150,12 +151,28 @@ class KestraClient:
         inputs: Optional[Dict[str, Any]] = None,
     ) -> str:
         path = f"/api/v1/{self.config.tenant}/executions/{namespace}/{flow_id}"
-        response = self.request("POST", path, data=inputs or {})
+        request_kwargs: Dict[str, Any] = {}
+        if inputs:
+            request_kwargs["files"] = {
+                input_id: (None, self._serialize_input(input_value))
+                for input_id, input_value in inputs.items()
+            }
+
+        response = self.request("POST", path, **request_kwargs)
         payload = response.json()
         execution_id = payload.get("id")
         if not execution_id:
             raise KestraApiError(f"Réponse de création d'exécution sans id: {payload}")
         return execution_id
+
+    @staticmethod
+    def _serialize_input(value: Any) -> str:
+        """Sérialise une valeur dans un champ multipart attendu par Kestra."""
+        if isinstance(value, bool):
+            return "true" if value else "false"
+        if isinstance(value, (dict, list)):
+            return json.dumps(value)
+        return str(value)
 
     def get_execution(self, execution_id: str) -> Dict[str, Any]:
         path = f"/api/v1/{self.config.tenant}/executions/{execution_id}"

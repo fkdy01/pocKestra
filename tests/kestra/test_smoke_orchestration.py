@@ -23,7 +23,6 @@ def test_f08_retry_backoff(kestra_client, repo_root):
         kestra_client,
         "poc.kestra.orchestration",
         "F08_retry_backoff",
-        inputs={"simulation": "success"},
     )
 
     assert_state(execution, "SUCCESS")
