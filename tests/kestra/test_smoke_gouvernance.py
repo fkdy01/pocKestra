@@ -12,8 +12,8 @@ def test_g02_validation_ci(kestra_client, repo_root):
         "G02_validation_ci",
         inputs={
             "mock_base_url": "http://mock-api:8080",
-            "repository": "fkdy01/pocKestra",
-            "branch": "main",
+            "pipeline_id": "TEST-CODEX-G02",
+            "quality_gate": "pass",
         },
     )
 
@@ -27,7 +27,7 @@ def test_g10_worker_group_mock(kestra_client, repo_root):
         kestra_client,
         "poc.kestra.gouvernance",
         "G10_worker_group_zone_os",
-        inputs={"execution_mode": "mock"},
+        inputs={"executer_tache_worker_reelle": False},
     )
 
     assert_state(execution, "SUCCESS")

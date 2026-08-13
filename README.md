@@ -23,3 +23,9 @@ scripts/validate_yaml.py        # validation syntaxique YAML
 docker compose up -d mock-api
 python3 scripts/validate_yaml.py
 ```
+
+## Kestra OSS local sous Ubuntu
+
+Le fichier `docker-compose.yml` permet de lancer PostgreSQL, Kestra OSS et l'API
+mock avec Docker Engine. Les commandes Bash, contrôles et limites sont documentés
+dans [`docs/test-guides/docker-ubuntu.md`](docs/test-guides/docker-ubuntu.md).

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from uuid import uuid4
+
 from conftest import assert_state, import_flow, run_and_wait
 
 
@@ -23,7 +25,10 @@ def test_i13_erreur_fournisseur_temporaire(kestra_client, repo_root):
         kestra_client,
         "poc.kestra.infrastructure",
         "I13_erreur_fournisseur_temporaire",
-        inputs={"mock_base_url": "http://mock-api:8080", "key": "codex-i13"},
+        inputs={
+            "mock_base_url": "http://mock-api:8080",
+            "key": f"codex-i13-{uuid4().hex}",
+        },
         timeout_seconds=180,
     )
 
