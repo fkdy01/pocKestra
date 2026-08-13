@@ -1,4 +1,7 @@
 __pycache__/
 *.pyc
 .env
+.env.before-*
 .venv/
+.kestra-tls/
+test-reports/

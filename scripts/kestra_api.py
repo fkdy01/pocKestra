@@ -8,7 +8,7 @@ import os
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, Iterable, Optional
+from typing import Any, Dict, Iterable, Optional, Union
 
 import requests
 import yaml
@@ -24,19 +24,21 @@ class KestraConfig:
     username: Optional[str] = None
     password: Optional[str] = None
     api_token: Optional[str] = None
-    verify_tls: bool = True
+    verify_tls: Union[bool, str] = True
     timeout_seconds: int = 30
 
     @classmethod
     def from_env(cls) -> "KestraConfig":
         verify_value = os.getenv("KESTRA_VERIFY_TLS", "true").strip().lower()
+        verify_enabled = verify_value not in {"0", "false", "no", "non"}
+        ca_bundle = os.getenv("KESTRA_CA_BUNDLE", "").strip()
         return cls(
             url=os.getenv("KESTRA_URL", "http://localhost:8080").rstrip("/"),
             tenant=os.getenv("KESTRA_TENANT", "main"),
             username=os.getenv("KESTRA_USERNAME") or None,
             password=os.getenv("KESTRA_PASSWORD") or None,
             api_token=os.getenv("KESTRA_API_TOKEN") or None,
-            verify_tls=verify_value not in {"0", "false", "no", "non"},
+            verify_tls=ca_bundle if verify_enabled and ca_bundle else verify_enabled,
             timeout_seconds=int(os.getenv("KESTRA_HTTP_TIMEOUT", "30")),
         )
 

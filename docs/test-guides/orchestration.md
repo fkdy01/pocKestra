@@ -380,14 +380,15 @@ F05_parallelisation
 | Input | Valeur |
 |---|---|
 | `serveurs` | `srv-001`, `srv-002`, `srv-003`, `srv-004` |
-| `concurrency_limit` | `2` |
+La limite de concurrence est fixée à `2` dans le flow, car Kestra 1.3 attend un
+entier statique pour `concurrencyLimit`.
 
 ### Étapes
 
 1. ouvrir le flow `F05_parallelisation` ;
 2. cliquer sur **Execute** ;
 3. conserver la liste par défaut ;
-4. conserver `concurrency_limit=2` ;
+4. vérifier que `concurrencyLimit` vaut `2` dans la source du flow ;
 5. lancer l'exécution ;
 6. consulter les tâches enfants de `traitements_paralleles` ;
 7. vérifier les logs `Début` et `Fin` de chaque serveur.
@@ -571,11 +572,13 @@ interval: PT2S
 
 - nombre de tentatives constatées ;
 - logs montrant l'échec puis le succès ;
-- statut final de l'exécution en succès.
+- statut final `WARNING`, qui indique ici un succès après retry.
 
 ### Critère OK / KO
 
-Le test est **OK** si le retry est visible et si le flow finit en succès sans relance manuelle.
+Le test est **OK** si le retry est visible, si la tâche finit en succès sans
+relance manuelle et si l'exécution termine en `WARNING`. Ce statut est attendu
+car le flow utilise `warningOnRetry: true` pour rendre le retry visible.
 
 ---
 
@@ -1330,4 +1333,3 @@ Pour toute anomalie, relever :
 - le worker concerné si visible ;
 - le comportement attendu ;
 - le comportement observé.
-

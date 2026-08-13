@@ -28,4 +28,4 @@ tasks:
 outputs:
   - id: resultat
     type: STRING
-    value: "{{ outputs.succes.value | default('FAILED', true) }}"
+    value: "{{ outputs.succes.value ??? 'FAILED' }}"

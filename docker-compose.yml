@@ -52,6 +52,20 @@ services:
       JAVA_OPTS: "-Xms512m -Xmx2g"
       NODE_OPTIONS: "--max-old-space-size=2048"
       KESTRA_CONFIGURATION: |
+        micronaut:
+          security:
+            x509:
+              enabled: false
+          ssl:
+            enabled: true
+          server:
+            ssl:
+              enabled: true
+              port: 8443
+              keyStore:
+                path: file:/app/ssl/keystore.p12
+                password: ${KESTRA_SSL_KEYSTORE_PASSWORD:-SECRET_NON_CONFIGURE}
+                type: PKCS12
         datasources:
           postgres:
             url: jdbc:postgresql://postgres:5432/kestra
@@ -72,12 +86,13 @@ services:
           tasks:
             tmp-dir:
               path: /tmp/kestra-wd/tmp
-          url: http://localhost:8080/
+          url: ${KESTRA_PUBLIC_URL:-https://localhost:8443/}
     volumes:
       - kestra-data:/app/storage
       - kestra-workdir:/tmp/kestra-wd
+      - ./.kestra-tls:/app/ssl:ro
     ports:
-      - "127.0.0.1:8080:8080"
+      - "${KESTRA_BIND_ADDRESS:-127.0.0.1}:8443:8443"
     depends_on:
       postgres:
         condition: service_healthy

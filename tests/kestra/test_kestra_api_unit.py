@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from kestra_api import KestraClient
+from kestra_api import KestraClient, KestraConfig
 
 
 class FakeResponse:
@@ -50,3 +50,21 @@ def test_create_execution_without_inputs_has_no_request_body(monkeypatch):
     client.create_execution("poc.kestra.orchestration", "F08_retry_backoff")
 
     assert captured == {}
+
+
+def test_config_uses_ca_bundle_when_tls_verification_is_enabled(monkeypatch):
+    monkeypatch.setenv("KESTRA_VERIFY_TLS", "true")
+    monkeypatch.setenv("KESTRA_CA_BUNDLE", ".kestra-tls/ca.crt")
+
+    config = KestraConfig.from_env()
+
+    assert config.verify_tls == ".kestra-tls/ca.crt"
+
+
+def test_config_can_disable_tls_verification_even_with_ca_bundle(monkeypatch):
+    monkeypatch.setenv("KESTRA_VERIFY_TLS", "false")
+    monkeypatch.setenv("KESTRA_CA_BUNDLE", ".kestra-tls/ca.crt")
+
+    config = KestraConfig.from_env()
+
+    assert config.verify_tls is False

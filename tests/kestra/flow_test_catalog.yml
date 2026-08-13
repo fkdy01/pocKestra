@@ -1,0 +1,445 @@
+# Catalogue exhaustif des flows du POC.
+# `automated` signifie que chaque scénario est exécuté par pytest en mode live.
+# `manual` signifie que le flow reste inventorié mais nécessite une preuve humaine
+# ou un environnement absent du POC local.
+flows:
+  - namespace: poc.kestra.exploitation
+    id: R01_consulter_execution_echec
+    automation: automated
+    scenarios:
+      - id: echec_attendu
+        inputs: {demande_id: AUTO-R01}
+        expected_state: FAILED
+  - namespace: poc.kestra.exploitation
+    id: R02_rejouer_execution
+    automation: automated
+    scenarios:
+      - id: premier_passage
+        inputs: {demande_id: AUTO-R02}
+        expected_state: SUCCESS
+      - id: rejeu_identique
+        inputs: {demande_id: AUTO-R02}
+        expected_state: SUCCESS
+  - namespace: poc.kestra.exploitation
+    id: R03_rejouer_parametres_corriges
+    automation: automated
+    scenarios:
+      - id: parametre_invalide
+        inputs: {code_validation: KO}
+        expected_state: FAILED
+      - id: parametre_corrige
+        inputs: {code_validation: OK}
+        expected_state: SUCCESS
+  - namespace: poc.kestra.exploitation
+    id: R04_reprise_apres_worker_crash
+    automation: automated
+    scenarios:
+      - id: crash_simule
+        inputs: {simuler_crash: true}
+        expected_state: FAILED
+      - id: reprise_simulee
+        inputs: {simuler_crash: false}
+        expected_state: SUCCESS
+  - namespace: poc.kestra.exploitation
+    id: R05_debloquer_execution_non_traitable
+    automation: automated
+    scenarios:
+      - id: payload_bloque
+        inputs: {payload_valide: false}
+        expected_state: FAILED
+      - id: payload_corrige
+        inputs: {payload_valide: true}
+        expected_state: SUCCESS
+  - namespace: poc.kestra.exploitation
+    id: R06_recherche_executions
+    automation: automated
+    scenarios:
+      - id: execution_recherchable
+        inputs: {statut_metier: WARNING}
+        expected_state: SUCCESS
+  - namespace: poc.kestra.exploitation
+    id: R07_export_logs_siem
+    automation: automated
+    scenarios:
+      - id: export_mock
+        inputs: {mock_base_url: "http://mock-api:8080", correlation_id: AUTO-R07}
+        expected_state: SUCCESS
+  - namespace: poc.kestra.exploitation
+    id: R08_alerte_sur_echec
+    automation: automated
+    scenarios:
+      - id: alerte_echec
+        inputs: {mock_base_url: "http://mock-api:8080"}
+        expected_state: FAILED
+  - namespace: poc.kestra.exploitation
+    id: R09_purge_retention
+    automation: automated
+    scenarios:
+      - id: dry_run
+        inputs: {mock_base_url: "http://mock-api:8080", older_than_days: 30, dry_run: true}
+        expected_state: SUCCESS
+  - namespace: poc.kestra.exploitation
+    id: R10_restaurer_flow_supprime_modifie
+    automation: automated
+    scenarios:
+      - id: restauration_mock
+        inputs: {mock_base_url: "http://mock-api:8080", flow_a_restaurer: poc.kestra.orchestration.F01_sequence_simple, version_cible: git-main}
+        expected_state: SUCCESS
+
+  - namespace: poc.kestra.gouvernance
+    id: G01_flow_source_git
+    automation: automated
+    scenarios:
+      - id: tracer_source
+        inputs: {repository_url: "https://example.invalid/pocKestra.git", commit_sha: AUTO-COMMIT, flow_path: kestra/flows/gouvernance/G01_flow_source_git.yml}
+        expected_state: SUCCESS
+  - namespace: poc.kestra.gouvernance
+    id: G02_validation_ci
+    automation: automated
+    scenarios:
+      - id: gate_ok
+        inputs: {mock_base_url: "http://mock-api:8080", pipeline_id: AUTO-G02, quality_gate: pass}
+        expected_state: SUCCESS
+      - id: gate_ko
+        inputs: {mock_base_url: "http://mock-api:8080", pipeline_id: AUTO-G02-KO, quality_gate: fail}
+        expected_state: FAILED
+  - namespace: poc.kestra.gouvernance
+    id: G03_deploiement_dev_recette_prod
+    automation: automated
+    scenarios:
+      - id: recette_autorisee
+        inputs: {mock_base_url: "http://mock-api:8080", application: poc-kestra, version: 1.0.0, environnement: recette, approbation: false}
+        expected_state: SUCCESS
+      - id: prod_non_approuvee
+        inputs: {mock_base_url: "http://mock-api:8080", application: poc-kestra, version: 1.0.0, environnement: prod, approbation: false}
+        expected_state: FAILED
+  - namespace: poc.kestra.gouvernance
+    id: G04_prod_readonly
+    automation: automated
+    scenarios:
+      - id: modification_prod_refusee
+        inputs: {environnement: prod, modification_directe_ui: true}
+        expected_state: FAILED
+      - id: modification_dev_autorisee
+        inputs: {environnement: dev, modification_directe_ui: true}
+        expected_state: SUCCESS
+  - namespace: poc.kestra.gouvernance
+    id: G05_rollback_applicatif
+    automation: automated
+    scenarios:
+      - id: rollback_mock
+        inputs: {mock_base_url: "http://mock-api:8080", application: poc-kestra, version_actuelle: 1.1.0, version_cible: 1.0.0, motif: Test automatique}
+        expected_state: SUCCESS
+  - namespace: poc.kestra.gouvernance
+    id: G06_separation_client_admin
+    automation: automated
+    scenarios:
+      - id: client_autorise
+        inputs: {mock_base_url: "http://mock-api:8080", profile: client, action: execute_flow}
+        expected_state: SUCCESS
+      - id: client_admin_refuse
+        inputs: {mock_base_url: "http://mock-api:8080", profile: client, action: manage_rbac}
+        expected_state: FAILED
+  - namespace: poc.kestra.gouvernance
+    id: G07_service_account_pipeline
+    automation: automated
+    scenarios:
+      - id: deploiement_autorise
+        inputs: {mock_base_url: "http://mock-api:8080", service_account: svc-kestra-cicd, operation: deploy_flow}
+        expected_state: SUCCESS
+      - id: suppression_refusee
+        inputs: {mock_base_url: "http://mock-api:8080", service_account: svc-kestra-cicd, operation: delete_tenant}
+        expected_state: FAILED
+  - namespace: poc.kestra.gouvernance
+    id: G08_audit_modification_flow
+    automation: automated
+    scenarios:
+      - id: audit_mock
+        inputs: {mock_base_url: "http://mock-api:8080", actor: testeur.poc, action: update_flow, target_flow: poc.kestra.gouvernance.G08_audit_modification_flow}
+        expected_state: SUCCESS
+  - namespace: poc.kestra.gouvernance
+    id: G09_multi_tenant_namespace
+    automation: automated
+    scenarios:
+      - id: namespace_autorise
+        inputs: {mock_base_url: "http://mock-api:8080", tenant: client-a, namespace_cible: poc.kestra.client-a}
+        expected_state: SUCCESS
+      - id: namespace_refuse
+        inputs: {mock_base_url: "http://mock-api:8080", tenant: client-a, namespace_cible: poc.kestra.client-b}
+        expected_state: FAILED
+  - namespace: poc.kestra.gouvernance
+    id: G10_worker_group_zone_os
+    automation: automated
+    scenarios:
+      - id: routage_mock
+        inputs: {mock_base_url: "http://mock-api:8080", zone: outils, os_cible: linux, executer_tache_worker_reelle: false}
+        expected_state: SUCCESS
+
+  - namespace: poc.kestra.infrastructure
+    id: I01_api_rest_interne
+    automation: automated
+    scenarios:
+      - id: api_mock
+        inputs: {mock_base_url: "http://mock-api:8080", count: 2}
+        expected_state: SUCCESS
+  - namespace: poc.kestra.infrastructure
+    id: I02_itsm_changement_mock
+    automation: automated
+    scenarios:
+      - id: changement_mock
+        inputs: {mock_base_url: "http://mock-api:8080", correlation_id: AUTO-I02, title: Changement automatique POC}
+        expected_state: SUCCESS
+  - namespace: poc.kestra.infrastructure
+    id: I03_ssh_linux
+    automation: automated
+    scenarios:
+      - id: ssh_mock
+        inputs: {execution_mode: mock, host: srv-linux-001, username: ansible}
+        expected_state: SUCCESS
+  - namespace: poc.kestra.infrastructure
+    id: I04_powershell_windows
+    automation: automated
+    scenarios:
+      - id: powershell_mock
+        inputs: {execution_mode: mock, target: win-srv-001}
+        expected_state: SUCCESS
+  - namespace: poc.kestra.infrastructure
+    id: I05_worker_windows_sccm
+    automation: manual
+    manual_reason: Worker group `windows-sccm` absent du POC local.
+  - namespace: poc.kestra.infrastructure
+    id: I06_worker_linux_podman
+    automation: automated
+    scenarios:
+      - id: podman_mock
+        inputs: {image: "alpine:3.20", use_podman: false}
+        expected_state: SUCCESS
+  - namespace: poc.kestra.infrastructure
+    id: I07_ansible_aap
+    automation: automated
+    scenarios:
+      - id: aap_mock
+        inputs: {mock_base_url: "http://mock-api:8080", template_id: "42", inventory: poc-inventory}
+        expected_state: SUCCESS
+        timeout_seconds: 180
+  - namespace: poc.kestra.infrastructure
+    id: I08_vmware_vcenter
+    automation: automated
+    scenarios:
+      - id: vmware_mock
+        inputs: {mock_base_url: "http://mock-api:8080", vm_name: poc-vm-auto, template: rhel9-small}
+        expected_state: SUCCESS
+  - namespace: poc.kestra.infrastructure
+    id: I09_ad_ldap
+    automation: automated
+    scenarios:
+      - id: ad_mock
+        inputs: {mock_base_url: "http://mock-api:8080", group: GG-POC-Kestra-Test, user: user.demo}
+        expected_state: SUCCESS
+  - namespace: poc.kestra.infrastructure
+    id: I10_traitement_fichier
+    automation: automated
+    scenarios:
+      - id: fichier_mock
+        inputs: {server: srv-001}
+        expected_state: SUCCESS
+  - namespace: poc.kestra.infrastructure
+    id: I11_multi_zone_reseau
+    automation: automated
+    scenarios:
+      - id: zone_mock
+        inputs: {mock_base_url: "http://mock-api:8080", zone: outils}
+        expected_state: SUCCESS
+  - namespace: poc.kestra.infrastructure
+    id: I12_orchestration_longue_polling
+    automation: automated
+    scenarios:
+      - id: polling_mock
+        inputs: {mock_base_url: "http://mock-api:8080", resource: auto-long-op}
+        expected_state: SUCCESS
+        timeout_seconds: 180
+  - namespace: poc.kestra.infrastructure
+    id: I13_erreur_fournisseur_temporaire
+    automation: automated
+    scenarios:
+      - id: retry_mock
+        inputs: {mock_base_url: "http://mock-api:8080", key: AUTO-UUID}
+        expected_state: WARNING
+        timeout_seconds: 180
+  - namespace: poc.kestra.infrastructure
+    id: I14_erreur_fonctionnelle_definitive
+    automation: automated
+    scenarios:
+      - id: serveur_inconnu
+        inputs: {mock_base_url: "http://mock-api:8080", server: srv-inconnu}
+        expected_state: FAILED
+  - namespace: poc.kestra.infrastructure
+    id: I15_annulation_execution_longue
+    automation: manual
+    manual_reason: Annulation volontaire à réaliser pendant l'exécution et preuve UI à collecter.
+
+  - namespace: poc.kestra.orchestration
+    id: F01_sequence_simple
+    automation: automated
+    scenarios:
+      - id: sequence
+        inputs: {demande_id: AUTO-F01}
+        expected_state: SUCCESS
+  - namespace: poc.kestra.orchestration
+    id: F02_parametres_validation
+    automation: automated
+    scenarios:
+      - id: parametres_valides
+        inputs: {serveur: srv-001, environnement: dev, dry_run: true}
+        expected_state: SUCCESS
+  - namespace: poc.kestra.orchestration
+    id: F03_conditions_switch
+    automation: automated
+    scenarios:
+      - id: branche_start
+        inputs: {action: start, urgent: false}
+        expected_state: SUCCESS
+  - namespace: poc.kestra.orchestration
+    id: F04_boucle_liste_serveurs
+    automation: automated
+    scenarios:
+      - id: boucle
+        inputs: {serveurs: [srv-001, srv-002, srv-003]}
+        expected_state: SUCCESS
+  - namespace: poc.kestra.orchestration
+    id: F05_parallelisation
+    automation: automated
+    scenarios:
+      - id: parallele
+        inputs: {serveurs: [srv-001, srv-002, srv-003, srv-004]}
+        expected_state: SUCCESS
+  - namespace: poc.kestra.orchestration
+    id: F06_subflow_parametres_retour
+    automation: automated
+    scenarios:
+      - id: subflow_ok
+        inputs: {serveur: srv-001}
+        expected_state: SUCCESS
+  - namespace: poc.kestra.orchestration
+    id: F07_subflow_erreur_reprise
+    automation: automated
+    scenarios:
+      - id: subflow_echec
+        inputs: {provoquer_erreur: true}
+        expected_state: FAILED
+      - id: subflow_reprise
+        inputs: {provoquer_erreur: false}
+        expected_state: SUCCESS
+  - namespace: poc.kestra.orchestration
+    id: F08_retry_backoff
+    automation: automated
+    scenarios:
+      - id: retry
+        inputs: {}
+        expected_state: WARNING
+  - namespace: poc.kestra.orchestration
+    id: F09_timeout_tache_longue
+    automation: automated
+    scenarios:
+      - id: timeout_attendu
+        inputs: {duree_secondes: 10}
+        expected_state: FAILED
+  - namespace: poc.kestra.orchestration
+    id: F10_gestion_erreur_locale
+    automation: automated
+    scenarios:
+      - id: erreur_locale
+        inputs: {}
+        expected_state: WARNING
+  - namespace: poc.kestra.orchestration
+    id: F11_gestion_erreur_globale
+    automation: automated
+    scenarios:
+      - id: erreur_globale
+        inputs: {}
+        expected_state: FAILED
+  - namespace: poc.kestra.orchestration
+    id: F12_reprise_manuelle
+    automation: automated
+    scenarios:
+      - id: avant_correction
+        inputs: {code_validation: KO}
+        expected_state: FAILED
+      - id: apres_correction
+        inputs: {code_validation: OK}
+        expected_state: SUCCESS
+  - namespace: poc.kestra.orchestration
+    id: F13_pause_approbation_humaine
+    automation: manual
+    manual_reason: Approbation et reprise humaines requises.
+  - namespace: poc.kestra.orchestration
+    id: F14_execution_programmee
+    automation: manual
+    manual_reason: Attente du déclenchement scheduler et preuve du contexte trigger requises.
+  - namespace: poc.kestra.orchestration
+    id: F15_execution_api_evenementielle
+    automation: automated
+    scenarios:
+      - id: appel_api
+        inputs: {mock_base_url: "http://mock-api:8080", correlation_id: AUTO-F15}
+        expected_state: SUCCESS
+  - namespace: poc.kestra.orchestration
+    id: F16_idempotence
+    automation: automated
+    scenarios:
+      - id: premier_passage
+        inputs: {demande_id: AUTO-IDEMPOTENCE}
+        expected_state: SUCCESS
+      - id: rejeu_identique
+        inputs: {demande_id: AUTO-IDEMPOTENCE}
+        expected_state: SUCCESS
+  - namespace: poc.kestra.orchestration
+    id: F17_compensation
+    automation: automated
+    scenarios:
+      - id: compensation
+        inputs: {provoquer_erreur_finale: true}
+        expected_state: FAILED
+  - namespace: poc.kestra.orchestration
+    id: F18_correlation_metier
+    automation: automated
+    scenarios:
+      - id: correlation_mock
+        inputs: {correlation_id: AUTO-F18, mock_base_url: "http://mock-api:8080"}
+        expected_state: SUCCESS
+  - namespace: poc.kestra.orchestration
+    id: F19_secrets
+    automation: manual
+    manual_reason: Secret `POC_API_TOKEN` à configurer et contrôle visuel de non-divulgation requis.
+  - namespace: poc.kestra.orchestration
+    id: F20_gros_outputs_logs
+    automation: automated
+    scenarios:
+      - id: volume_logs
+        inputs: {lignes: 1000}
+        expected_state: SUCCESS
+
+  - namespace: poc.kestra.orchestration
+    id: common_compensation
+    automation: automated
+    support_flow: true
+    scenarios:
+      - id: support
+        inputs: {ressource_id: AUTO-RESSOURCE}
+        expected_state: SUCCESS
+  - namespace: poc.kestra.orchestration
+    id: common_controle_serveur
+    automation: automated
+    support_flow: true
+    scenarios:
+      - id: support
+        inputs: {serveur: srv-001}
+        expected_state: SUCCESS
+  - namespace: poc.kestra.orchestration
+    id: common_operation_fragile
+    automation: automated
+    support_flow: true
+    scenarios:
+      - id: support_succes
+        inputs: {provoquer_erreur: false}
+        expected_state: SUCCESS

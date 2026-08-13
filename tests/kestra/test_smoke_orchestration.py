@@ -25,4 +25,4 @@ def test_f08_retry_backoff(kestra_client, repo_root):
         "F08_retry_backoff",
     )
 
-    assert_state(execution, "SUCCESS")
+    assert_state(execution, "WARNING")

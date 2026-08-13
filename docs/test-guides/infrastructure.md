@@ -684,12 +684,14 @@ I13_erreur_fournisseur_temporaire
 2. lancer avec les valeurs recommandées
 3. observer les premières tentatives en erreur HTTP 503
 4. attendre les retries
-5. vérifier le succès final
+5. vérifier le succès final de la tâche et le statut d'exécution `WARNING`
 6. consulter le log final
 
 ### Résultat attendu
 
-Le mock échoue temporairement puis réussit. Le flow doit finir en succès après retry.
+Le mock échoue temporairement puis réussit. La tâche finit en succès après
+retry et l'exécution termine en `WARNING`, conformément à
+`warningOnRetry: true`.
 
 ### Preuves à collecter
 
@@ -700,7 +702,8 @@ Le mock échoue temporairement puis réussit. Le flow doit finir en succès apr�
 
 ### Critère OK / KO
 
-Le test est **OK** si les retries sont visibles et si l'exécution finit en succès.
+Le test est **OK** si les retries sont visibles, si la réponse finale est un
+succès et si l'exécution termine en `WARNING`.
 
 ---
 ## I14 — Erreur fonctionnelle définitive

@@ -2,6 +2,12 @@
 
 Ce dossier contient les modes opératoires destinés aux testeurs qui ne sont pas spécialistes Kestra.
 
+## Guides d'installation et de sécurisation
+
+- [Docker Engine sous Ubuntu](docker-ubuntu.md)
+- [HTTPS direct sous Ubuntu et Podman rootless RHEL 8](https-webserver.md)
+- [Rapports Markdown des tests automatisés](rapports-tests-automatiques.md)
+
 ## Règle à appliquer pour chaque onglet
 
 Pour chaque famille de cas d'usage, le guide doit contenir :
@@ -48,4 +54,3 @@ F01_F01_sequence_simple_3pZxA1_20260811.png
 | KO | Le résultat attendu n'est pas obtenu. |
 | Non testé | Le test n'a pas pu être exécuté. |
 | Non applicable | Le cas ne s'applique pas à l'environnement testé. |
-

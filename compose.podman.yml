@@ -1,0 +1,8 @@
+# Surcharge pour un hôte Podman rootless avec SELinux actif (RHEL 8).
+# À utiliser avec docker-compose.yml, qui reste la source de configuration commune.
+services:
+  kestra:
+    volumes:
+      - kestra-data:/app/storage
+      - kestra-workdir:/tmp/kestra-wd
+      - ./.kestra-tls:/app/ssl:ro,Z
