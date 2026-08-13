@@ -18,7 +18,8 @@ Les artefacts attendus sont :
 - API mock FastAPI ;
 - catalogues de cas d'usage ;
 - modes opératoires pour testeurs non spécialistes Kestra ;
-- scripts de validation.
+- scripts de validation ;
+- tests automatisés pilotables depuis VS Code / Codex.
 
 ## Rôle de Codex
 
@@ -31,7 +32,8 @@ Codex doit :
 - conserver une logique de POC exécutable sans dépendance à des SI réels ;
 - utiliser des mocks lorsque la cible réelle n'est pas disponible ;
 - documenter les limites et prérequis de chaque cas ;
-- ne jamais introduire de secret, mot de passe, token ou endpoint interne réel.
+- ne jamais introduire de secret, mot de passe, token ou endpoint interne réel ;
+- distinguer clairement génération de fichiers, validation syntaxique, tests automatisés et exécution réelle dans Kestra.
 
 ## Structure du dépôt
 
@@ -44,6 +46,10 @@ docs/use-cases/                 # catalogues par famille de cas d'usage
 docs/test-guides/               # modes opératoires testeur
 mock-api/                       # API FastAPI de simulation
 scripts/validate_yaml.py        # validation syntaxique YAML
+scripts/kestra_api.py           # client REST minimal pour tests Kestra
+scripts/import_flows.py         # import de flows dans Kestra via API REST
+scripts/run_kestra_tests.py     # validation YAML + lancement pytest
+tests/kestra/                   # smoke tests API Kestra
 ```
 
 ## Conventions de nommage
@@ -134,6 +140,99 @@ Règles pour modifier le mock :
 - documenter les nouveaux endpoints dans le catalogue ou le guide testeur ;
 - ne jamais intégrer d'URL ou de secret réel.
 
+## Tests automatisés Kestra — stratégie A
+
+La stratégie A repose sur des tests Python qui appellent directement l'API REST de Kestra.
+
+Codex peut piloter ces tests depuis VS Code en lançant les scripts du dépôt. Les tests ne doivent pas piloter l'interface Web Kestra.
+
+### Préparation locale
+
+Installer les dépendances de développement :
+
+```bash
+python3 -m pip install -r requirements-dev.txt
+```
+
+Démarrer le mock API si un flow testé dépend d'un SI simulé :
+
+```bash
+docker compose up -d mock-api
+```
+
+Configurer l'environnement à partir de `.env.example` :
+
+```bash
+export KESTRA_URL=http://localhost:8080
+export KESTRA_TENANT=main
+export KESTRA_RUN_TESTS=true
+```
+
+Pour une instance protégée, utiliser uniquement des variables d'environnement locales non commitées :
+
+```bash
+export KESTRA_USERNAME=...
+export KESTRA_PASSWORD=...
+export KESTRA_API_TOKEN=...
+```
+
+### Commandes de test
+
+Validation syntaxique seule :
+
+```bash
+python3 scripts/validate_yaml.py
+```
+
+Importer des flows dans Kestra :
+
+```bash
+python3 scripts/import_flows.py kestra/flows/orchestration/F01_sequence_simple.yml
+python3 scripts/import_flows.py --all
+```
+
+Lancer les tests automatisés live :
+
+```bash
+pytest tests/kestra --kestra-live
+```
+
+Ou via variable d'environnement :
+
+```bash
+export KESTRA_RUN_TESTS=true
+python3 scripts/run_kestra_tests.py
+```
+
+### Règles pour les tests
+
+Les tests `tests/kestra/` doivent :
+
+- être désactivés par défaut afin de ne pas échouer si Kestra n'est pas démarré ;
+- s'activer avec `--kestra-live` ou `KESTRA_RUN_TESTS=true` ;
+- importer le flow avant de l'exécuter ;
+- lancer le flow via l'API REST ;
+- attendre un état terminal ;
+- vérifier explicitement le statut attendu ;
+- utiliser les endpoints mock plutôt que des SI réels ;
+- documenter les limites si un test dépend d'un plugin ou d'un worker group.
+
+Les tests automatisés initiaux sont des smoke tests. Ils ne remplacent pas les modes opératoires testeurs.
+
+### Cas à privilégier pour les smoke tests
+
+Priorité recommandée :
+
+```text
+F01  orchestration simple
+F08  retry
+I01  appel API mock
+I13  erreur temporaire fournisseur
+R07  export SIEM mock
+G02  validation CI mock
+G10  worker group en mode mock
+```
+
 ## Documentation attendue par onglet
 
 Pour chaque nouvelle famille de cas d'usage, créer ou mettre à jour :
@@ -198,7 +297,11 @@ Si le mock API est modifié, lancer si possible :
 docker compose up -d mock-api
 ```
 
-Puis vérifier que l'API démarre correctement.
+Si les tests Kestra sont concernés et qu'une instance Kestra est disponible :
+
+```bash
+pytest tests/kestra --kestra-live
+```
 
 Ne pas prétendre qu'un flow a été exécuté dans Kestra si seule la syntaxe YAML a été validée.
 
@@ -219,7 +322,8 @@ Un commit direct sur `main` n'est acceptable que pour :
 
 - correction documentaire simple ;
 - ajout de consignes ;
-- ajustement mineur sans impact fonctionnel.
+- ajout ou ajustement mineur de scripts de test ;
+- changement sans impact fonctionnel sur les flows existants.
 
 ## Branches et Pull Requests
 
@@ -227,14 +331,6 @@ Pour tout lot fonctionnel ou nouvel onglet, utiliser une branche dédiée :
 
 ```text
 agent/<nom-du-lot>
-```
-
-Exemples :
-
-```text
-agent/securite-use-cases
-agent/resilience-use-cases
-agent/capacity-planning
 ```
 
 La PR doit contenir :
@@ -322,6 +418,7 @@ Toujours distinguer :
 - syntaxe YAML validée ;
 - mock API démarré ;
 - flow réellement exécuté dans Kestra ;
-- résultat observé par un testeur.
+- résultat observé par un testeur ;
+- test automatisé exécuté par Codex.
 
 Ne jamais écrire qu'un test est validé de bout en bout si l'exécution réelle dans Kestra n'a pas été faite.
