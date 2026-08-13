@@ -31,7 +31,7 @@ tasks:
         method: GET
       - id: log_statut
         type: io.kestra.plugin.core.log.Log
-        message: "Polling {{ taskrun.value }} : {{ outputs.lire_statut.body }}"
+        message: "Polling {{ taskrun.value }} : {{ outputs.lire_statut[taskrun.value].body }}"
   - id: compte_rendu
     type: io.kestra.plugin.core.log.Log
     message: "Opération terminée après polling."

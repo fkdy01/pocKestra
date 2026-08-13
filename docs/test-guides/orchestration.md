@@ -380,17 +380,15 @@ F05_parallelisation
 | Input | Valeur |
 |---|---|
 | `serveurs` | `srv-001`, `srv-002`, `srv-003`, `srv-004` |
-| `concurrency_limit` | `2` |
 
 ### Étapes
 
 1. ouvrir le flow `F05_parallelisation` ;
 2. cliquer sur **Execute** ;
 3. conserver la liste par défaut ;
-4. conserver `concurrency_limit=2` ;
-5. lancer l'exécution ;
-6. consulter les tâches enfants de `traitements_paralleles` ;
-7. vérifier les logs `Début` et `Fin` de chaque serveur.
+4. lancer l'exécution ;
+5. consulter les tâches enfants de `traitements_paralleles` ;
+6. vérifier les logs `Début` et `Fin` de chaque serveur.
 
 ### Résultat attendu
 
@@ -571,11 +569,12 @@ interval: PT2S
 
 - nombre de tentatives constatées ;
 - logs montrant l'échec puis le succès ;
-- statut final de l'exécution en succès.
+- statut final de l'exécution en `WARNING`, car `warningOnRetry` est activé.
 
 ### Critère OK / KO
 
-Le test est **OK** si le retry est visible et si le flow finit en succès sans relance manuelle.
+Le test est **OK** si le retry est visible, si la dernière tentative réussit sans relance
+manuelle et si le flow finit en `WARNING` comme configuré.
 
 ---
 
@@ -1193,6 +1192,7 @@ Ne pas utiliser de vrai secret de production pour ce test.
 | Input | Valeur |
 |---|---|
 | `endpoint` | `https://example.invalid/api` |
+| `verifier_secret_configure` | `false` |
 
 ### Étapes
 
@@ -1200,7 +1200,7 @@ Ne pas utiliser de vrai secret de production pour ce test.
 2. vérifier que la valeur du secret n'est pas présente en clair ;
 3. vérifier que le flow utilise une référence de type `secret('POC_API_TOKEN')` ;
 4. ouvrir le flow `F19_secrets` dans Kestra ;
-5. exécuter le flow sans créer de vrai secret de production ;
+5. exécuter le flow avec `verifier_secret_configure=false` sans créer de vrai secret de production ;
 6. consulter les logs ;
 7. vérifier qu'aucune valeur sensible réelle n'est collectée dans les preuves.
 
@@ -1218,6 +1218,10 @@ Le log de consigne doit indiquer :
 Vérifier que le secret POC_API_TOKEN n'est jamais stocké en clair dans le flow.
 ```
 
+Le mode par défaut ne lit aucun secret. Si un secret fictif local est configuré, un
+second test peut être lancé avec `verifier_secret_configure=true`. Seule la confirmation
+de présence est alors journalisée, jamais la valeur.
+
 ### Preuves à collecter
 
 - capture du flow montrant la référence `secret('POC_API_TOKEN')` ;
@@ -1230,7 +1234,9 @@ Le test est **OK** si aucun secret réel n'est présent dans Git ni dans les pre
 
 ### Point de vigilance sécurité
 
-Le flow de démonstration construit un en-tête d'autorisation pour montrer la référence au secret. Dans un flow de production, ne jamais afficher ou retourner la valeur d'un secret dans un output, un log ou une tâche de debug.
+Le flow de démonstration vérifie uniquement la présence d'un secret fictif lorsque le
+testeur le demande. Ne jamais afficher ou retourner la valeur d'un secret dans un output,
+un log ou une tâche de debug.
 
 ---
 
@@ -1330,4 +1336,3 @@ Pour toute anomalie, relever :
 - le worker concerné si visible ;
 - le comportement attendu ;
 - le comportement observé.
-
