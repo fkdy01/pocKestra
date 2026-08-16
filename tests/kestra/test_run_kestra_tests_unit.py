@@ -12,7 +12,7 @@ from run_kestra_tests import (
     render_report,
     validate_flow_catalog,
 )
-from conftest import proof_inputs
+from conftest import materialize_inputs, proof_inputs
 
 
 def test_parse_kestra_proofs_merges_started_and_terminal_events():
@@ -97,6 +97,14 @@ def test_redact_masks_authentication_and_target_values():
     assert "https://localhost:8443" not in result
     assert str(Path.cwd()) not in result
     assert "<depot-local>" in result
+
+
+def test_materialize_inputs_uses_remote_mock_url(monkeypatch):
+    monkeypatch.setenv("KESTRA_MOCK_BASE_URL", "https://mock.example.invalid/")
+
+    assert materialize_inputs({"mock_base_url": "http://mock-api:8080"}) == {
+        "mock_base_url": "https://mock.example.invalid"
+    }
 
 
 def test_render_report_is_ko_when_live_tests_produce_no_execution_proof():

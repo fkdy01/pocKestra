@@ -6,6 +6,8 @@ Ce dossier contient les modes opératoires destinés aux testeurs qui ne sont pa
 
 - [Docker Engine sous Ubuntu](docker-ubuntu.md)
 - [HTTPS direct sous Ubuntu et Podman rootless RHEL 8](https-webserver.md)
+- [Mac avec Docker Desktop en HTTP](plateforme-mac-docker-http.md)
+- [Red Hat/Podman distant derrière une VIP HTTPS](plateforme-redhat-vip-https.md)
 - [Rapports Markdown des tests automatisés](rapports-tests-automatiques.md)
 
 ## Règle à appliquer pour chaque onglet

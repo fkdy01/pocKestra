@@ -64,9 +64,11 @@ def values_to_redact(environment: Mapping[str, str]) -> list[str]:
     for name, value in environment.items():
         if not value:
             continue
-        if name == "KESTRA_URL" or any(fragment in name.upper() for fragment in SENSITIVE_ENV_FRAGMENTS):
+        if name in {"KESTRA_URL", "KESTRA_MOCK_BASE_URL"} or any(
+            fragment in name.upper() for fragment in SENSITIVE_ENV_FRAGMENTS
+        ):
             values.add(value)
-            if name == "KESTRA_URL":
+            if name in {"KESTRA_URL", "KESTRA_MOCK_BASE_URL"}:
                 values.add(value.rstrip("/"))
     return sorted(values, key=len, reverse=True)
 

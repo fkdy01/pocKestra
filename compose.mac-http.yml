@@ -1,0 +1,77 @@
+name: poc-kestra-mac-http
+
+volumes:
+  postgres-data:
+  kestra-data:
+  kestra-workdir:
+
+services:
+  postgres:
+    image: postgres:18
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: kestra
+      POSTGRES_USER: kestra
+      POSTGRES_PASSWORD: ${KESTRA_DB_PASSWORD:-SECRET_NON_CONFIGURE}
+    volumes:
+      - postgres-data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  mock-api:
+    build: ./mock-api
+    restart: unless-stopped
+    environment:
+      MOCK_API_FAILURES_BEFORE_SUCCESS: "2"
+    ports:
+      - "127.0.0.1:18080:8080"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/health', timeout=2)"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  kestra:
+    image: ${KESTRA_IMAGE:-kestra/kestra:v1.3.20}
+    restart: unless-stopped
+    stop_grace_period: 6m
+    user: "root"
+    command: server standalone
+    environment:
+      JAVA_OPTS: "-Xms512m -Xmx2g"
+      NODE_OPTIONS: "--max-old-space-size=2048"
+      KESTRA_CONFIGURATION: |
+        datasources:
+          postgres:
+            url: jdbc:postgresql://postgres:5432/kestra
+            driverClassName: org.postgresql.Driver
+            username: kestra
+            password: ${KESTRA_DB_PASSWORD:-SECRET_NON_CONFIGURE}
+        kestra:
+          anonymous-usage-report:
+            enabled: false
+          repository:
+            type: postgres
+          storage:
+            type: local
+            local:
+              base-path: /app/storage
+          queue:
+            type: postgres
+          tasks:
+            tmp-dir:
+              path: /tmp/kestra-wd/tmp
+          url: ${KESTRA_PUBLIC_URL:-http://localhost:8080/}
+    volumes:
+      - kestra-data:/app/storage
+      - kestra-workdir:/tmp/kestra-wd
+    ports:
+      - "127.0.0.1:8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mock-api:
+        condition: service_healthy

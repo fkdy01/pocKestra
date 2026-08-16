@@ -80,6 +80,8 @@ def materialize_inputs(inputs: dict[str, Any]) -> dict[str, Any]:
     for key, value in materialized.items():
         if value == "AUTO-UUID":
             materialized[key] = f"codex-exhaustif-{uuid4().hex}"
+        elif key == "mock_base_url" and os.getenv("KESTRA_MOCK_BASE_URL"):
+            materialized[key] = os.environ["KESTRA_MOCK_BASE_URL"].rstrip("/")
     return materialized
 
 
