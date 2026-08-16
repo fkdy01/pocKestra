@@ -7,7 +7,7 @@ volumes:
 
 services:
   postgres:
-    image: postgres:18
+    image: docker-remote.registry.saas.cagip.group.gca/postgres:18 
     restart: unless-stopped
     environment:
       POSTGRES_DB: kestra
