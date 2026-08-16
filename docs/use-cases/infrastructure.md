@@ -50,7 +50,7 @@ L'API FastAPI située dans `mock-api/` simule plusieurs SI externes utilisés pa
 | I10 | `I10_traitement_fichier` | Traitement fichier | Génération et stockage d'un fichier |
 | I11 | `I11_multi_zone_reseau` | Traitement multi-zone réseau | Vérification d'accès par zone |
 | I12 | `I12_orchestration_longue_polling` | Orchestration longue | Polling jusqu'à fin d'opération |
-| I13 | `I13_erreur_fournisseur_temporaire` | Erreur fournisseur temporaire | Retry sur API instable |
+| I13 | `I13_erreur_fournisseur_temporaire` | Erreur fournisseur temporaire | Retry réussi, statut `WARNING` attendu |
 | I14 | `I14_erreur_fonctionnelle_definitive` | Erreur fonctionnelle définitive | Serveur inconnu, échec attendu |
 | I15 | `I15_annulation_execution_longue` | Annulation en cours | Arrêt manuel d'une exécution longue |
 

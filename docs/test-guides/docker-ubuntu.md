@@ -7,7 +7,8 @@ version Ubuntu prise en charge par Docker Engine.
 ## Périmètre et limites
 
 - L'environnement est local et non destiné à la production.
-- L'interface Kestra et l'API mock écoutent uniquement sur `127.0.0.1`.
+- L'interface Kestra utilise HTTPS directement dans le webserver Kestra et écoute
+  uniquement sur `127.0.0.1:8443`.
 - L'authentification Kestra n'est pas activée.
 - Le mot de passe PostgreSQL est un secret local propre au POC.
 - Le socket Docker de l'hôte n'est pas monté dans Kestra.
@@ -87,11 +88,18 @@ autres valeurs proposées pour un premier démarrage :
 
 ```dotenv
 KESTRA_DB_PASSWORD=<VALEUR_LOCALE_GENEREE>
+KESTRA_SSL_KEYSTORE_PASSWORD=<AUTRE_VALEUR_LOCALE_GENEREE>
 KESTRA_IMAGE=kestra/kestra:v1.3.20
-KESTRA_URL=http://localhost:8080
+KESTRA_BIND_ADDRESS=127.0.0.1
+KESTRA_PUBLIC_URL=https://localhost:8443/
+KESTRA_URL=https://localhost:8443
 KESTRA_TENANT=main
 KESTRA_RUN_TESTS=false
 KESTRA_API_TOKEN=
+KESTRA_TLS_DNS_NAME=localhost
+KESTRA_TLS_IP_ADDRESS=127.0.0.1
+KESTRA_VERIFY_TLS=true
+KESTRA_CA_BUNDLE=.kestra-tls/ca.crt
 ```
 
 Le fichier `.env` est ignoré par Git. Le vérifier avant de poursuivre :
@@ -102,6 +110,27 @@ git check-ignore .env
 
 La commande doit afficher `.env`. Ne jamais utiliser dans ce POC un mot de passe,
 un token ou une URL provenant d'un environnement réel.
+
+## Générer le certificat HTTPS local
+
+Le webserver Kestra attend un keystore PKCS#12. Charger les variables locales puis
+générer un certificat autosigné valable pour `localhost` et `127.0.0.1` :
+
+```bash
+set -a
+source .env
+set +a
+./scripts/generate_local_tls.sh
+```
+
+Le script crée une autorité locale, un certificat serveur et
+`.kestra-tls/keystore.p12`. Ce dossier est ignoré par Git. Ne jamais commiter ni
+transmettre `.kestra-tls/ca.key`, `.kestra-tls/server.key` ou le keystore.
+
+Le certificat local chiffre les échanges, mais le navigateur ne lui fait pas
+confiance par défaut. Pour supprimer l'avertissement, installer uniquement
+`.kestra-tls/ca.crt` dans le magasin de certificats local. Ne jamais importer une
+clé privée ailleurs.
 
 ## Vérifier et démarrer l'environnement
 
@@ -136,7 +165,15 @@ Vérifier l'API mock depuis Ubuntu :
 curl --fail --silent --show-error http://localhost:18080/health
 ```
 
-Ouvrir ensuite `http://localhost:8080` dans un navigateur. Depuis un flow Kestra,
+Vérifier Kestra en validant explicitement le certificat généré :
+
+```bash
+curl --fail --silent --show-error \
+  --cacert .kestra-tls/ca.crt \
+  https://localhost:8443/api/v1/configs
+```
+
+Ouvrir ensuite `https://localhost:8443` dans un navigateur. Depuis un flow Kestra,
 le mock est accessible sur le réseau Compose avec :
 
 ```text
@@ -217,9 +254,12 @@ docker compose logs --tail 100 postgres
 docker compose logs --tail 100 mock-api
 docker compose logs --tail 100 kestra
 curl --fail --silent --show-error http://localhost:18080/health
+curl --fail --silent --show-error \
+  --cacert .kestra-tls/ca.crt \
+  https://localhost:8443/api/v1/configs
 ```
 
-Si le port `8080` ou `18080` est déjà utilisé, arrêter le service en conflit avant
+Si le port `8443` ou `18080` est déjà utilisé, arrêter le service en conflit avant
 de relancer Compose. Conserver `http://mock-api:8080` pour les appels effectués par
 les flows.
 
@@ -228,3 +268,4 @@ les flows.
 - [Installation officielle de Docker Engine sous Ubuntu](https://docs.docker.com/engine/install/ubuntu/)
 - [Étapes Docker après installation sous Linux](https://docs.docker.com/engine/install/linux-postinstall/)
 - [Déploiement officiel de Kestra avec Docker Compose](https://kestra.io/docs/installation/docker-compose)
+- [Configuration SSL/TLS officielle de Kestra](https://kestra.io/docs/administrator-guide/ssl-configuration)

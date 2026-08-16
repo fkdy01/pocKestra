@@ -1,0 +1,23 @@
+id: F05_parallelisation
+namespace: poc.kestra.orchestration
+description: "F05 - Parallélisation contrôlée sur N serveurs."
+labels: {poc.domain: orchestration, poc.usecase: F05}
+inputs:
+  - id: serveurs
+    type: ARRAY
+    itemType: STRING
+    defaults: [srv-001, srv-002, srv-003, srv-004]
+tasks:
+  - id: traitements_paralleles
+    type: io.kestra.plugin.core.flow.ForEach
+    values: "{{ inputs.serveurs }}"
+    # Kestra 1.3 attend ici un entier statique et refuse une expression Pebble.
+    concurrencyLimit: 2
+    tasks:
+      - id: traitement_serveur
+        type: io.kestra.plugin.scripts.shell.Commands
+        taskRunner: {type: io.kestra.plugin.core.runner.Process}
+        commands:
+          - echo "Début {{ taskrun.value }}"
+          - sleep 1
+          - echo "Fin {{ taskrun.value }}"

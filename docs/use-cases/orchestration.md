@@ -26,7 +26,7 @@ L'API FastAPI située dans `mock-api/` simule un SI externe : healthcheck, echo,
 | F05 | `F05_parallelisation` | Parallélisation contrôlée | Concurrence limitée |
 | F06 | `F06_subflow_parametres_retour` | Subflow avec outputs | Output du sous-flow journalisé |
 | F07 | `F07_subflow_erreur_reprise` | Subflow en erreur/reprise | Échec contrôlé puis succès |
-| F08 | `F08_retry_backoff` | Retry constant | Succès après retries |
+| F08 | `F08_retry_backoff` | Retry constant | Succès après retries, statut `WARNING` attendu |
 | F09 | `F09_timeout_tache_longue` | Timeout | Branche `errors` exécutée |
 | F10 | `F10_gestion_erreur_locale` | Erreur locale non bloquante | Le flow continue |
 | F11 | `F11_gestion_erreur_globale` | Erreur globale | Branche `errors` exécutée |
@@ -52,4 +52,3 @@ docs/test-guides/orchestration.md
 
 - Les flows utilisent parfois le `Process` task runner pour les scripts Shell de test : à borner par worker group, compte OS dédié et allowlist de plugins.
 - Certains cas d'erreur sont volontairement en échec pour tester reprise, alerting et diagnostic.
-
